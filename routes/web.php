@@ -14,6 +14,7 @@ use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
 use App\Http\Controllers\Promotion\PromotionController;
+use App\Http\Controllers\Reconciliation\BankReconciliationController;
 use App\Http\Controllers\Reporting\ReportController;
 use App\Http\Controllers\Results\ResultController;
 use App\Http\Controllers\Security\SecurityController;
@@ -94,6 +95,9 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/hr/leaves/{leave}/review', [HrController::class, 'reviewLeave'])->middleware('permission:hr.approve')->name('hr.leaves.review');
     Route::post('/hr/payroll', [HrController::class, 'generatePayroll'])->middleware('permission:payroll.manage')->name('hr.payroll.generate');
     Route::post('/hr/payroll/{run}/approve', [HrController::class, 'approvePayroll'])->middleware('permission:payroll.approve')->name('hr.payroll.approve');
+    Route::get('/finance/reconciliation', [BankReconciliationController::class, 'index'])->middleware('permission:reconciliation.manage')->name('reconciliation.index');
+    Route::post('/finance/reconciliation', [BankReconciliationController::class, 'store'])->middleware('permission:reconciliation.manage')->name('reconciliation.store');
+    Route::post('/finance/reconciliation/{run}/complete', [BankReconciliationController::class, 'complete'])->middleware('permission:reconciliation.complete')->name('reconciliation.complete');
     Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.manage')->name('finance.index');
     Route::post('/finance/invoices/{invoice}/collect', [FinanceController::class, 'collect'])->middleware('permission:finance.manage')->name('finance.collect');
     Route::post('/finance/expenses', [FinanceController::class, 'storeExpense'])->middleware('permission:expenses.create')->name('finance.expenses.store');
