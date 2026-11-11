@@ -11,6 +11,7 @@ use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Library\LibraryController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Timetable\TimetableController;
+use App\Http\Controllers\Transport\TransportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -38,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
+    Route::get('/transport', [TransportController::class, 'index'])->middleware('permission:transport.manage')->name('transport.index');
+    Route::post('/transport/vehicles', [TransportController::class, 'storeVehicle'])->middleware('permission:transport.manage')->name('transport.vehicles.store');
+    Route::post('/transport/assignments', [TransportController::class, 'assign'])->middleware('permission:transport.manage')->name('transport.assignments.store');
     Route::get('/library', [LibraryController::class, 'index'])->middleware('permission:library.manage')->name('library.index');
     Route::post('/library/books', [LibraryController::class, 'storeBook'])->middleware('permission:library.manage')->name('library.books.store');
     Route::post('/library/loans', [LibraryController::class, 'issue'])->middleware('permission:library.issue')->name('library.loans.issue');

@@ -25,7 +25,10 @@ use App\Models\TeachingAssignment;
 use App\Models\Term;
 use App\Models\TimetableEntry;
 use App\Models\TimetablePeriod;
+use App\Models\TransportRoute;
+use App\Models\TransportStop;
 use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -44,6 +47,7 @@ class DatabaseSeeder extends Seeder
             ['hr.manage', 'HR', 'Manage staff'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'],
             ['timetable.manage', 'Academics', 'Manage timetable'],
             ['library.manage', 'Library', 'Manage catalogue'], ['library.issue', 'Library', 'Issue and return books'],
+            ['transport.manage', 'Transport', 'Manage school transport'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -72,6 +76,10 @@ class DatabaseSeeder extends Seeder
             return Section::create(['grade_level_id' => $grade->id, 'name' => 'A', 'capacity' => 40]);
         });
         $demoSection = $sections[11];
+
+        $vehicle = Vehicle::create(['school_id' => $school->id, 'registration_no' => 'SLW-2026-01', 'make_model' => 'Toyota Coaster', 'capacity' => 30, 'driver_name' => 'Muhammad Aslam', 'driver_phone' => '+923221234567', 'status' => 'active', 'fitness_expires_on' => '2027-06-30']);
+        $route = TransportRoute::create(['school_id' => $school->id, 'vehicle_id' => $vehicle->id, 'name' => 'Farid Town Route', 'code' => 'RT-01', 'departure_time' => '07:00', 'return_time' => '14:15', 'status' => 'active']);
+        TransportStop::create(['transport_route_id' => $route->id, 'name' => 'Farid Town Gate', 'sequence' => 1, 'pickup_time' => '07:15', 'dropoff_time' => '14:35', 'monthly_fee' => 350000]);
 
         $room = Room::create(['school_id' => $school->id, 'name' => 'Room 9-A', 'building' => 'Main Block', 'capacity' => 40, 'type' => 'classroom']);
         $periods = collect([['Period 1', '08:00', '08:45'], ['Period 2', '08:45', '09:30'], ['Period 3', '09:30', '10:15'], ['Break', '10:15', '10:35'], ['Period 4', '10:35', '11:20'], ['Period 5', '11:20', '12:05']])->map(fn ($p, $i) => TimetablePeriod::create(['school_id' => $school->id, 'name' => $p[0], 'starts_at' => $p[1], 'ends_at' => $p[2], 'sequence' => $i + 1, 'is_break' => $p[0] === 'Break']));
