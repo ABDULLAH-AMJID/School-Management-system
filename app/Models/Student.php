@@ -11,11 +11,11 @@ class Student extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['school_id', 'public_id', 'admission_no', 'first_name', 'last_name', 'date_of_birth', 'gender', 'status', 'admitted_on', 'photo_path'];
+    protected $fillable = ['school_id', 'public_id', 'admission_no', 'first_name', 'last_name', 'date_of_birth', 'gender', 'status', 'admitted_on', 'photo_path', 'cnic_b_form', 'blood_group', 'medical_notes', 'previous_school', 'address', 'withdrawn_on', 'withdrawal_reason'];
 
     protected function casts(): array
     {
-        return ['date_of_birth' => 'date', 'admitted_on' => 'date'];
+        return ['date_of_birth' => 'date', 'admitted_on' => 'date', 'withdrawn_on' => 'date'];
     }
 
     public function school(): BelongsTo

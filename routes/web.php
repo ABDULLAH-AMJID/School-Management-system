@@ -21,6 +21,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/students', [StudentController::class, 'index'])->middleware('permission:students.view')->name('students.index');
     Route::get('/students/create', [StudentController::class, 'create'])->middleware('permission:students.create')->name('students.create');
     Route::post('/students', [StudentController::class, 'store'])->middleware('permission:students.create')->name('students.store');
+    Route::get('/students/{student}', [StudentController::class, 'show'])->middleware('permission:students.view')->name('students.show');
+    Route::get('/students/{student}/edit', [StudentController::class, 'edit'])->middleware('permission:students.update')->name('students.edit');
+    Route::put('/students/{student}', [StudentController::class, 'update'])->middleware('permission:students.update')->name('students.update');
+    Route::post('/students/{student}/guardians', [StudentController::class, 'addGuardian'])->middleware('permission:students.update')->name('students.guardians.store');
+    Route::post('/students/{student}/withdraw', [StudentController::class, 'withdraw'])->middleware('permission:students.archive')->name('students.withdraw');
     Route::get('/academics', [AcademicController::class, 'index'])->name('academics.index');
     Route::get('/assessments', [AssessmentController::class, 'index'])->middleware('permission:exams.manage')->name('assessments.index');
     Route::get('/assessments/{component}/entry', [AssessmentController::class, 'entry'])->middleware('permission:exams.manage')->name('assessments.entry');
