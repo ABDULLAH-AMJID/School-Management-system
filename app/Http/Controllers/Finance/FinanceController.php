@@ -7,6 +7,8 @@ use App\Models\Account;
 use App\Models\ExpenseVoucher;
 use App\Models\FeeConcession;
 use App\Models\FeeInvoice;
+use App\Models\Payment;
+use App\Models\PaymentReversal;
 use App\Services\Finance\ApproveExpenseVoucher;
 use App\Services\Finance\CollectFeePayment;
 use Illuminate\Http\RedirectResponse;
@@ -23,10 +25,12 @@ final class FinanceController extends Controller
 
         $expenseAccounts = Account::where(['school_id' => $request->user()->school_id, 'type' => 'expense', 'active' => true])->get();
         $paymentAccounts = Account::where('school_id', $request->user()->school_id)->whereIn('type', ['asset'])->where('active', true)->get();
+        $payments = Payment::where('school_id', $request->user()->school_id)->where('status', 'posted')->latest()->limit(20)->get();
+        $reversals = PaymentReversal::where('school_id', $request->user()->school_id)->with('payment')->latest()->limit(20)->get();
         $concessions = FeeConcession::where('school_id', $request->user()->school_id)->with(['student', 'invoice'])->latest()->limit(20)->get();
         $vouchers = ExpenseVoucher::where('school_id', $request->user()->school_id)->with(['expenseAccount', 'paymentAccount'])->latest()->limit(20)->get();
 
-        return view('finance.index', compact('invoices', 'totals', 'expenseAccounts', 'paymentAccounts', 'vouchers', 'concessions'));
+        return view('finance.index', compact('invoices', 'totals', 'expenseAccounts', 'paymentAccounts', 'vouchers', 'concessions', 'payments', 'reversals'));
     }
 
     public function storeExpense(Request $request): RedirectResponse
