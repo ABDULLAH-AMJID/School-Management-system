@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Communication;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendOutboundMessage;
+use App\Models\CommunicationPreference;
 use App\Models\MessageTemplate;
 use App\Models\OutboundMessage;
 use App\Models\Student;
@@ -19,7 +20,7 @@ final class CommunicationController extends Controller
     {
         $schoolId = $request->user()->school_id;
 
-        return view('communication.index', ['messages' => OutboundMessage::where('school_id', $schoolId)->with(['student', 'template'])->latest()->paginate(20), 'templates' => MessageTemplate::where('school_id', $schoolId)->where('active', true)->get(), 'students' => Student::where('school_id', $schoolId)->where('status', 'active')->orderBy('first_name')->get()]);
+        return view('communication.index', ['messages' => OutboundMessage::where('school_id', $schoolId)->with(['student', 'template'])->latest()->paginate(20), 'templates' => MessageTemplate::where('school_id', $schoolId)->where('active', true)->get(), 'preferences' => CommunicationPreference::where('school_id', $schoolId)->latest()->limit(30)->get(), 'students' => Student::where('school_id', $schoolId)->where('status', 'active')->orderBy('first_name')->get()]);
     }
 
     public function store(Request $request, QueueMessage $service): RedirectResponse
@@ -30,6 +31,14 @@ final class CommunicationController extends Controller
         $message = $service->create($template, $student, $data['recipient'], $request->user(), [], $data['scheduled_for'] ?? null);
 
         return back()->with('success', $message->status === 'approved' ? 'Message queued for delivery.' : 'Message created and awaits approval.');
+    }
+
+    public function preference(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['recipient' => ['required', 'regex:/^\+[1-9]\d{7,14}$/'], 'event' => ['required', 'string', 'max:80'], 'opted_out' => ['required', 'boolean'], 'reason' => ['nullable', 'string', 'max:500']]);
+        CommunicationPreference::updateOrCreate(['school_id' => $request->user()->school_id, 'recipient' => $data['recipient'], 'channel' => 'whatsapp', 'event' => $data['event']], ['opted_out' => $data['opted_out'], 'reason' => $data['reason'] ?? null, 'updated_by' => $request->user()->id, 'opted_out_at' => $data['opted_out'] ? now() : null, 'consented_at' => $data['opted_out'] ? null : now()]);
+
+        return back()->with('success', $data['opted_out'] ? 'Recipient opted out.' : 'Communication consent restored.');
     }
 
     public function storeTemplate(Request $request): RedirectResponse
