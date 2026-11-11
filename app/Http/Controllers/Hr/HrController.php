@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Hr;
 
 use App\Http\Controllers\Controller;
+use App\Models\Account;
+use App\Models\JournalEntry;
 use App\Models\LeaveRequest;
 use App\Models\PayrollRun;
 use App\Models\Payslip;
@@ -77,7 +79,12 @@ final class HrController extends Controller
         abort_unless($run->school_id === $request->user()->school_id, 403);
         abort_unless($run->status === 'draft' && $run->payslips()->exists(), 409);
         DB::transaction(function () use ($run, $request) {
-            $run->update(['status' => 'approved', 'approved_by' => $request->user()->id, 'approved_at' => now()]);
+            $total = $run->payslips()->sum('net_salary');
+            $expense = Account::where(['school_id' => $run->school_id, 'code' => '5000'])->firstOrFail();
+            $payable = Account::where(['school_id' => $run->school_id, 'code' => '2100'])->firstOrFail();
+            $entry = JournalEntry::create(['school_id' => $run->school_id, 'number' => 'JV-PAY-'.$run->period, 'entry_date' => $run->period_end, 'reference_type' => PayrollRun::class, 'reference_id' => $run->id, 'description' => 'Payroll accrual '.$run->period, 'status' => 'posted', 'created_by' => $request->user()->id, 'posted_at' => now()]);
+            $entry->lines()->createMany([['account_id' => $expense->id, 'debit' => $total, 'credit' => 0, 'memo' => 'Salary expense'], ['account_id' => $payable->id, 'debit' => 0, 'credit' => $total, 'memo' => 'Payroll payable']]);
+            $run->update(['status' => 'approved', 'approved_by' => $request->user()->id, 'approved_at' => now(), 'journal_entry_id' => $entry->id]);
             $run->payslips()->update(['status' => 'approved']);
         });
         $run->load('payslips.staffProfile.user');

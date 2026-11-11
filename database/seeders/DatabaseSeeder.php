@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
         $teacherUser->roles()->attach($teacherRole);
         $staff = StaffProfile::create(['school_id' => $school->id, 'user_id' => $teacherUser->id, 'employee_no' => 'EMP-0001', 'designation' => 'Senior Teacher', 'department' => 'Academics', 'joined_on' => '2023-08-01', 'employment_type' => 'permanent', 'basic_salary' => 8500000, 'status' => 'active']);
         LeaveRequest::create(['staff_profile_id' => $staff->id, 'type' => 'casual', 'starts_on' => today()->addDays(3), 'ends_on' => today()->addDays(4), 'days' => 2, 'reason' => 'Family commitment', 'status' => 'pending']);
-        foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense'], ['5010', 'Administrative Expense', 'expense'], ['5020', 'Utilities Expense', 'expense']] as $account) {
+        foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['2100', 'Payroll Payable', 'liability'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense'], ['5010', 'Administrative Expense', 'expense'], ['5020', 'Utilities Expense', 'expense']] as $account) {
             Account::create(['school_id' => $school->id, 'code' => $account[0], 'name' => $account[1], 'type' => $account[2]]);
         }
 
