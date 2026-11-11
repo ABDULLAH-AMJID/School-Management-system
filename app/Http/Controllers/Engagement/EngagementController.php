@@ -37,7 +37,11 @@ final class EngagementController extends Controller
         $data = $request->validate(['source' => ['required', Rule::in(['parent', 'student', 'staff', 'anonymous'])], 'complainant_name' => ['required', 'string', 'max:120'], 'complainant_phone' => ['nullable', 'string', 'max:30'], 'student_id' => ['nullable', 'exists:students,id'], 'category' => ['required', 'string', 'max:80'], 'priority' => ['required', Rule::in(['low', 'normal', 'high', 'urgent'])], 'subject' => ['required', 'string', 'max:180'], 'description' => ['required', 'string', 'max:5000'], 'assigned_to' => ['nullable', 'exists:users,id']]);
         if ($data['student_id'] ?? null) {
             abort_unless(Student::where(['id' => $data['student_id'], 'school_id' => $request->user()->school_id])->exists(), 403);
-        }$complaint = Complaint::create($data + ['public_id' => (string) Str::ulid(), 'school_id' => $request->user()->school_id, 'reference_no' => 'CMP-'.now()->format('ymd').'-'.str_pad((string) (Complaint::count() + 1), 4, '0', STR_PAD_LEFT), 'status' => 'open']);
+        }
+        if ($data['assigned_to'] ?? null) {
+            abort_unless(User::where(['id' => $data['assigned_to'], 'school_id' => $request->user()->school_id, 'status' => 'active'])->exists(), 403);
+        }
+        $complaint = Complaint::create($data + ['public_id' => (string) Str::ulid(), 'school_id' => $request->user()->school_id, 'reference_no' => 'CMP-'.now()->format('ymd').'-'.str_pad((string) (Complaint::count() + 1), 4, '0', STR_PAD_LEFT), 'status' => 'open']);
         if ($complaint->student_id) {
             $messenger->handle('complaint_registered', 'complaint', $complaint->id, $complaint->student, $request->user(), ['complaint_reference' => $complaint->reference_no, 'complaint_subject' => $complaint->subject], $complaint->complainant_phone);
         }

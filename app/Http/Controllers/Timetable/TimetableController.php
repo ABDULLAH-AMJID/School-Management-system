@@ -63,6 +63,10 @@ final class TimetableController extends Controller
         $year = AcademicYear::where(['school_id' => $schoolId, 'is_current' => true])->firstOrFail();
         $assignment = TeachingAssignment::with('section.gradeLevel')->findOrFail($data['teaching_assignment_id']);
         abort_unless($assignment->section->gradeLevel->school_id === $schoolId && $assignment->section_id === (int) $data['section_id'], 403);
+        abort_unless(TimetablePeriod::where(['id' => $data['period_id'], 'school_id' => $schoolId])->exists(), 403);
+        if ($data['room_id'] ?? null) {
+            abort_unless(Room::where(['id' => $data['room_id'], 'school_id' => $schoolId])->exists(), 403);
+        }
         $teacherBusy = TimetableEntry::where(['academic_year_id' => $year->id, 'weekday' => $data['weekday'], 'period_id' => $data['period_id']])->whereHas('assignment', fn ($q) => $q->where('teacher_id', $assignment->teacher_id))->exists();
         if ($teacherBusy) {
             throw ValidationException::withMessages(['teaching_assignment_id' => 'This teacher is already assigned in the selected period.']);
