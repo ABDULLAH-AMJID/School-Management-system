@@ -6,6 +6,7 @@ use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Engagement\EngagementController;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
@@ -40,6 +41,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
+    Route::get('/engagement', [EngagementController::class, 'index'])->middleware('permission:engagement.manage')->name('engagement.index');
+    Route::post('/engagement/notices', [EngagementController::class, 'storeNotice'])->middleware('permission:engagement.manage')->name('engagement.notices.store');
+    Route::post('/engagement/complaints', [EngagementController::class, 'storeComplaint'])->middleware('permission:complaints.manage')->name('engagement.complaints.store');
+    Route::post('/engagement/complaints/{complaint}/resolve', [EngagementController::class, 'resolve'])->middleware('permission:complaints.resolve')->name('engagement.complaints.resolve');
     Route::get('/inventory', [InventoryController::class, 'index'])->middleware('permission:inventory.manage')->name('inventory.index');
     Route::post('/inventory/items', [InventoryController::class, 'storeItem'])->middleware('permission:inventory.manage')->name('inventory.items.store');
     Route::post('/inventory/items/{item}/movements', [InventoryController::class, 'moveStock'])->middleware('permission:inventory.issue')->name('inventory.movements.store');
