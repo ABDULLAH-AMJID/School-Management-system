@@ -25,7 +25,7 @@ final class AccessController extends Controller
     public function storeUser(Request $request): RedirectResponse
     {
         $data = $request->validate(['name' => ['required', 'string', 'max:120'], 'email' => ['required', 'email', 'max:150', 'unique:users,email'], 'phone' => ['nullable', 'regex:/^\+[1-9]\d{7,14}$/'], 'role_id' => ['required', 'exists:roles,id'], 'password' => ['required', 'string', 'min:10', 'confirmed']]);
-        $user = User::create(['school_id' => $request->user()->school_id, 'public_id' => (string) Str::ulid(), 'name' => $data['name'], 'email' => $data['email'], 'phone' => $data['phone'] ?? null, 'status' => 'active', 'password' => Hash::make($data['password'])]);
+        $user = User::create(['school_id' => $request->user()->school_id, 'public_id' => (string) Str::ulid(), 'name' => $data['name'], 'email' => $data['email'], 'phone' => $data['phone'] ?? null, 'status' => 'active', 'must_change_password' => true, 'password' => Hash::make($data['password'])]);
         $user->roles()->sync([$data['role_id']]);
 
         return back()->with('success', 'Staff account created.');
@@ -58,6 +58,6 @@ final class AccessController extends Controller
             return back()->withErrors(['permission_ids' => 'Principal role must retain access management permission.']);
         }$role->permissions()->sync($data['permission_ids'] ?? []);
 
-        return back()->with('success','Role permissions updated.');
+        return back()->with('success', 'Role permissions updated.');
     }
 }

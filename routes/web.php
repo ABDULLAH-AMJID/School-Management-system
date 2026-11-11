@@ -17,6 +17,7 @@ use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
 use App\Http\Controllers\Payments\OnlinePaymentController;
+use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Reconciliation\BankReconciliationController;
 use App\Http\Controllers\Reporting\ReportController;
@@ -36,7 +37,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,1');
 });
-Route::middleware(['auth', 'active', 'audit'])->group(function () {
+Route::middleware(['auth', 'active', 'audit', 'password.changed'])->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/students', [StudentController::class, 'index'])->middleware('permission:students.view')->name('students.index');
@@ -96,6 +97,8 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/library/books', [LibraryController::class, 'storeBook'])->middleware('permission:library.manage')->name('library.books.store');
     Route::post('/library/loans', [LibraryController::class, 'issue'])->middleware('permission:library.issue')->name('library.loans.issue');
     Route::post('/library/loans/{loan}/return', [LibraryController::class, 'returnBook'])->middleware('permission:library.issue')->name('library.loans.return');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/approvals', ApprovalInboxController::class)->name('approvals.index');
     Route::get('/search', GlobalSearchController::class)->name('search');
     Route::get('/settings/school', [SchoolSettingsController::class, 'edit'])->middleware('permission:settings.manage')->name('settings.school.edit');
