@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Academic\AcademicController;
+use App\Http\Controllers\Administration\AccessController;
 use App\Http\Controllers\Assessment\AssessmentController;
 use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -26,7 +27,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,1');
 });
-Route::middleware(['auth', 'audit'])->group(function () {
+Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/students', [StudentController::class, 'index'])->middleware('permission:students.view')->name('students.index');
@@ -47,6 +48,11 @@ Route::middleware(['auth', 'audit'])->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
+    Route::get('/administration/access', [AccessController::class, 'index'])->middleware('permission:access.manage')->name('access.index');
+    Route::post('/administration/users', [AccessController::class, 'storeUser'])->middleware('permission:access.manage')->name('access.users.store');
+    Route::put('/administration/users/{user}', [AccessController::class, 'updateUser'])->middleware('permission:access.manage')->name('access.users.update');
+    Route::post('/administration/roles', [AccessController::class, 'storeRole'])->middleware('permission:access.manage')->name('access.roles.store');
+    Route::put('/administration/roles/{role}', [AccessController::class, 'updateRole'])->middleware('permission:access.manage')->name('access.roles.update');
     Route::get('/certificates', [CertificateController::class, 'index'])->middleware('permission:certificates.issue')->name('certificates.index');
     Route::post('/certificates', [CertificateController::class, 'issue'])->middleware('permission:certificates.issue')->name('certificates.issue');
     Route::get('/certificates/{certificate}', [CertificateController::class, 'show'])->middleware('permission:certificates.issue')->name('certificates.show');

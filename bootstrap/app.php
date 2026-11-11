@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuditMutations;
+use App\Http\Middleware\EnsureActiveUser;
 use App\Http\Middleware\EnsurePermission;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => EnsurePermission::class,
             'audit' => AuditMutations::class,
+            'active' => EnsureActiveUser::class,
         ]);
         $middleware->redirectGuestsTo('/login');
     })

@@ -59,12 +59,21 @@ class DatabaseSeeder extends Seeder
             ['security.view', 'Security', 'View audit and security'], ['backups.create', 'Security', 'Create encrypted backups'],
             ['certificates.issue', 'Documents', 'Issue certificates'], ['certificates.revoke', 'Documents', 'Revoke certificates'],
             ['promotions.manage', 'Academics', 'Prepare promotions'], ['promotions.complete', 'Academics', 'Complete promotions'],
+            ['access.manage', 'Platform', 'Manage users, roles and permissions'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
         $user = User::create(['school_id' => $school->id, 'public_id' => (string) Str::ulid(), 'name' => 'Abdullah Amjid', 'email' => 'principal@school.test', 'phone' => '+923001234567', 'status' => 'active', 'password' => 'password']);
         $user->roles()->attach($principal);
+        $teacherRole = Role::create(['name' => 'teacher', 'label' => 'Teacher', 'system' => true]);
+        $teacherRole->permissions()->sync(Permission::whereIn('name', ['students.view', 'attendance.manage', 'exams.manage', 'timetable.manage'])->pluck('id'));
+        $cashierRole = Role::create(['name' => 'cashier', 'label' => 'Cashier', 'system' => true]);
+        $cashierRole->permissions()->sync(Permission::whereIn('name', ['finance.manage', 'reports.view'])->pluck('id'));
+        $librarianRole = Role::create(['name' => 'librarian', 'label' => 'Librarian', 'system' => true]);
+        $librarianRole->permissions()->sync(Permission::whereIn('name', ['library.manage', 'library.issue'])->pluck('id'));
+
         $teacherUser = User::create(['school_id' => $school->id, 'public_id' => (string) Str::ulid(), 'name' => 'Sarah Ahmed', 'email' => 'teacher@school.test', 'phone' => '+923111234567', 'status' => 'active', 'password' => 'password']);
+        $teacherUser->roles()->attach($teacherRole);
         $staff = StaffProfile::create(['school_id' => $school->id, 'user_id' => $teacherUser->id, 'employee_no' => 'EMP-0001', 'designation' => 'Senior Teacher', 'department' => 'Academics', 'joined_on' => '2023-08-01', 'employment_type' => 'permanent', 'basic_salary' => 8500000, 'status' => 'active']);
         LeaveRequest::create(['staff_profile_id' => $staff->id, 'type' => 'casual', 'starts_on' => today()->addDays(3), 'ends_on' => today()->addDays(4), 'days' => 2, 'reason' => 'Family commitment', 'status' => 'pending']);
         foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense']] as $account) {
