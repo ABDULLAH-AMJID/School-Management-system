@@ -8,6 +8,7 @@ use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
+use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Timetable\TimetableController;
@@ -39,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
+    Route::get('/inventory', [InventoryController::class, 'index'])->middleware('permission:inventory.manage')->name('inventory.index');
+    Route::post('/inventory/items', [InventoryController::class, 'storeItem'])->middleware('permission:inventory.manage')->name('inventory.items.store');
+    Route::post('/inventory/items/{item}/movements', [InventoryController::class, 'moveStock'])->middleware('permission:inventory.issue')->name('inventory.movements.store');
+    Route::post('/inventory/assets', [InventoryController::class, 'storeAsset'])->middleware('permission:inventory.manage')->name('inventory.assets.store');
     Route::get('/transport', [TransportController::class, 'index'])->middleware('permission:transport.manage')->name('transport.index');
     Route::post('/transport/vehicles', [TransportController::class, 'storeVehicle'])->middleware('permission:transport.manage')->name('transport.vehicles.store');
     Route::post('/transport/assignments', [TransportController::class, 'assign'])->middleware('permission:transport.manage')->name('transport.assignments.store');

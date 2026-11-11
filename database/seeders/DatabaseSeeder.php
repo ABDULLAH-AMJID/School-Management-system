@@ -8,7 +8,9 @@ use App\Models\AssessmentComponent;
 use App\Models\Enrollment;
 use App\Models\ExamSession;
 use App\Models\FeeInvoice;
+use App\Models\FixedAsset;
 use App\Models\GradeLevel;
+use App\Models\InventoryItem;
 use App\Models\LeaveRequest;
 use App\Models\LibraryBook;
 use App\Models\LibraryCopy;
@@ -48,6 +50,7 @@ class DatabaseSeeder extends Seeder
             ['timetable.manage', 'Academics', 'Manage timetable'],
             ['library.manage', 'Library', 'Manage catalogue'], ['library.issue', 'Library', 'Issue and return books'],
             ['transport.manage', 'Transport', 'Manage school transport'],
+            ['inventory.manage', 'Inventory', 'Manage stock and assets'], ['inventory.issue', 'Inventory', 'Issue and receive stock'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -59,6 +62,9 @@ class DatabaseSeeder extends Seeder
         foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense']] as $account) {
             Account::create(['school_id' => $school->id, 'code' => $account[0], 'name' => $account[1], 'type' => $account[2]]);
         }
+
+        InventoryItem::create(['school_id' => $school->id, 'sku' => 'STA-001', 'name' => 'A4 Paper Ream', 'category' => 'Stationery', 'unit' => 'ream', 'quantity' => 48, 'reorder_level' => 15, 'average_cost' => 145000, 'location' => 'Main Store', 'active' => true]);
+        FixedAsset::create(['school_id' => $school->id, 'asset_tag' => 'IT-0001', 'name' => 'Administration Laptop', 'category' => 'IT Equipment', 'purchased_on' => '2026-04-10', 'purchase_cost' => 18500000, 'location' => 'Principal Office', 'assigned_to' => 'Principal', 'condition' => 'good', 'status' => 'in_use']);
 
         $demoBook = LibraryBook::create(['school_id' => $school->id, 'isbn' => '9780199062131', 'title' => 'Mathematics for Secondary Schools', 'author' => 'Punjab Textbook Board', 'publisher' => 'PCTB', 'category' => 'Mathematics', 'publication_year' => 2026, 'shelf' => 'M-01']);
         LibraryCopy::create(['library_book_id' => $demoBook->id, 'accession_no' => 'LIB-00001', 'barcode' => '9780199062131-001', 'condition' => 'good', 'status' => 'available', 'acquired_on' => today(), 'cost' => 95000]);
