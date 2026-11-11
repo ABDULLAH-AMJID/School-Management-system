@@ -46,11 +46,11 @@ final class FeeSetupController extends Controller
             abort_if(FeeGenerationRun::where('fee_installment_id', $installment->id)->exists(), 422, 'Installment already generated.');
             $enrollments = Enrollment::where('academic_year_id', $s->academic_year_id)->whereHas('section', fn ($q) => $q->where('grade_level_id', $s->grade_level_id))->get();
             foreach ($enrollments as $e) {
-                $invoice = FeeInvoice::create(['school_id' => $s->school_id, 'student_id' => $e->student_id, 'number' => 'INV-'.$installment->id.'-'.$e->student_id, 'issue_date' => $installment->issue_date, 'due_date' => $installment->due_date, 'subtotal' => $installment->amount, 'discount' => 0, 'fine' => 0, 'total' => $installment->amount, 'paid' => 0, 'status' => 'issued']);
+                $invoice = FeeInvoice::create(['school_id' => $s->school_id, 'student_id' => $e->student_id, 'fee_installment_id' => $installment->id, 'number' => 'INV-'.$installment->id.'-'.$e->student_id, 'issue_date' => $installment->issue_date, 'due_date' => $installment->due_date, 'subtotal' => $installment->amount, 'discount' => 0, 'fine' => 0, 'total' => $installment->amount, 'paid' => 0, 'status' => 'issued']);
                 $invoice->items()->create(['description' => $s->name.' · '.$installment->name, 'quantity' => 1, 'unit_amount' => $installment->amount, 'total' => $installment->amount]);
             }FeeGenerationRun::create(['fee_installment_id' => $installment->id, 'generated_by' => $r->user()->id, 'invoice_count' => $enrollments->count(), 'total_amount' => $enrollments->count() * $installment->amount, 'generated_at' => now()]);
         });
 
-        return back()->with('success','Installment invoices generated.');
+        return back()->with('success', 'Installment invoices generated.');
     }
 }

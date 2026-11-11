@@ -15,6 +15,11 @@ class FeeInvoice extends Model
         return ['issue_date' => 'date', 'due_date' => 'date'];
     }
 
+    public function installment(): BelongsTo
+    {
+        return $this->belongsTo(FeeInstallment::class, 'fee_installment_id');
+    }
+
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
