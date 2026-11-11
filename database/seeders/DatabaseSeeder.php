@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
         $permissions = collect([
             ['students.view', 'People', 'View students'], ['students.create', 'People', 'Admit students'],
             ['students.update', 'People', 'Update students'], ['students.archive', 'People', 'Archive students'],
-            ['attendance.manage', 'Attendance', 'Manage attendance'], ['finance.manage', 'Finance', 'Manage finance'], ['fees.configure', 'Finance', 'Configure fee structures'], ['fees.generate', 'Finance', 'Generate fee invoices'], ['expenses.create', 'Finance', 'Submit expense vouchers'], ['expenses.approve', 'Finance', 'Approve expense vouchers'], ['reconciliation.manage', 'Finance', 'Prepare bank reconciliations'], ['reconciliation.complete', 'Finance', 'Complete bank reconciliations'],
+            ['attendance.manage', 'Attendance', 'Manage attendance'], ['finance.manage', 'Finance', 'Manage finance'], ['fees.configure', 'Finance', 'Configure fee structures'], ['fees.generate', 'Finance', 'Generate fee invoices'], ['concessions.create', 'Finance', 'Request fee concessions'], ['concessions.approve', 'Finance', 'Approve fee concessions'], ['expenses.create', 'Finance', 'Submit expense vouchers'], ['expenses.approve', 'Finance', 'Approve expense vouchers'], ['reconciliation.manage', 'Finance', 'Prepare bank reconciliations'], ['reconciliation.complete', 'Finance', 'Complete bank reconciliations'],
             ['settings.manage', 'Platform', 'Manage settings'],
             ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
             ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
@@ -71,7 +71,7 @@ class DatabaseSeeder extends Seeder
         $teacherRole = Role::create(['name' => 'teacher', 'label' => 'Teacher', 'system' => true]);
         $teacherRole->permissions()->sync(Permission::whereIn('name', ['students.view', 'attendance.manage', 'exams.manage', 'timetable.manage'])->pluck('id'));
         $cashierRole = Role::create(['name' => 'cashier', 'label' => 'Cashier', 'system' => true]);
-        $cashierRole->permissions()->sync(Permission::whereIn('name', ['finance.manage', 'expenses.create', 'reports.view'])->pluck('id'));
+        $cashierRole->permissions()->sync(Permission::whereIn('name', ['finance.manage', 'expenses.create', 'concessions.create', 'reports.view'])->pluck('id'));
         $librarianRole = Role::create(['name' => 'librarian', 'label' => 'Librarian', 'system' => true]);
         $librarianRole->permissions()->sync(Permission::whereIn('name', ['library.manage', 'library.issue'])->pluck('id'));
 

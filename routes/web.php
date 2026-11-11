@@ -9,6 +9,7 @@ use App\Http\Controllers\Certificate\CertificateController;
 use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Engagement\EngagementController;
+use App\Http\Controllers\Fee\FeeConcessionController;
 use App\Http\Controllers\Fee\FeeSetupController;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
@@ -98,6 +99,9 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/hr/leaves/{leave}/review', [HrController::class, 'reviewLeave'])->middleware('permission:hr.approve')->name('hr.leaves.review');
     Route::post('/hr/payroll', [HrController::class, 'generatePayroll'])->middleware('permission:payroll.manage')->name('hr.payroll.generate');
     Route::post('/hr/payroll/{run}/approve', [HrController::class, 'approvePayroll'])->middleware('permission:payroll.approve')->name('hr.payroll.approve');
+    Route::post('/finance/invoices/{invoice}/concessions', [FeeConcessionController::class, 'store'])->middleware('permission:concessions.create')->name('concessions.store');
+    Route::post('/finance/concessions/{concession}/approve', [FeeConcessionController::class, 'approve'])->middleware('permission:concessions.approve')->name('concessions.approve');
+    Route::post('/finance/concessions/{concession}/reject', [FeeConcessionController::class, 'reject'])->middleware('permission:concessions.approve')->name('concessions.reject');
     Route::get('/finance/fee-setup', [FeeSetupController::class, 'index'])->middleware('permission:fees.configure')->name('fee-setup.index');
     Route::post('/finance/fee-setup', [FeeSetupController::class, 'store'])->middleware('permission:fees.configure')->name('fee-setup.store');
     Route::post('/finance/fee-installments/{installment}/generate', [FeeSetupController::class, 'generate'])->middleware('permission:fees.generate')->name('fee-setup.generate');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Finance;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\ExpenseVoucher;
+use App\Models\FeeConcession;
 use App\Models\FeeInvoice;
 use App\Services\Finance\ApproveExpenseVoucher;
 use App\Services\Finance\CollectFeePayment;
@@ -22,9 +23,10 @@ final class FinanceController extends Controller
 
         $expenseAccounts = Account::where(['school_id' => $request->user()->school_id, 'type' => 'expense', 'active' => true])->get();
         $paymentAccounts = Account::where('school_id', $request->user()->school_id)->whereIn('type', ['asset'])->where('active', true)->get();
+        $concessions = FeeConcession::where('school_id', $request->user()->school_id)->with(['student', 'invoice'])->latest()->limit(20)->get();
         $vouchers = ExpenseVoucher::where('school_id', $request->user()->school_id)->with(['expenseAccount', 'paymentAccount'])->latest()->limit(20)->get();
 
-        return view('finance.index', compact('invoices', 'totals', 'expenseAccounts', 'paymentAccounts', 'vouchers'));
+        return view('finance.index', compact('invoices', 'totals', 'expenseAccounts', 'paymentAccounts', 'vouchers', 'concessions'));
     }
 
     public function storeExpense(Request $request): RedirectResponse
