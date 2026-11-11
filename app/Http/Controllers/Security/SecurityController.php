@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\BackupRecord;
 use App\Services\Backup\CreateEncryptedBackup;
+use App\Services\Operations\SystemHealth;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,6 +17,11 @@ final class SecurityController extends Controller
     public function index(Request $request): View
     {
         return view('security.index', ['logs' => AuditLog::where('school_id', $request->user()->school_id)->latest('created_at')->paginate(25), 'backups' => BackupRecord::where('school_id', $request->user()->school_id)->latest()->limit(10)->get()]);
+    }
+
+    public function health(SystemHealth $health): JsonResponse
+    {
+        return response()->json($health->inspect());
     }
 
     public function backup(Request $request, CreateEncryptedBackup $service): RedirectResponse

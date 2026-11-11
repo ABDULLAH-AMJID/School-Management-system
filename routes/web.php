@@ -69,6 +69,7 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::get('/certificates/{certificate}', [CertificateController::class, 'show'])->middleware('permission:certificates.issue')->name('certificates.show');
     Route::post('/certificates/{certificate}/revoke', [CertificateController::class, 'revoke'])->middleware('permission:certificates.revoke')->name('certificates.revoke');
     Route::get('/security', [SecurityController::class, 'index'])->middleware('permission:security.view')->name('security.index');
+    Route::get('/security/health', [SecurityController::class, 'health'])->middleware('permission:security.view')->name('security.health');
     Route::post('/security/backups', [SecurityController::class, 'backup'])->middleware('permission:backups.create')->name('security.backups.create');
     Route::get('/promotions', [PromotionController::class, 'index'])->middleware('permission:promotions.manage')->name('promotions.index');
     Route::post('/promotions', [PromotionController::class, 'create'])->middleware('permission:promotions.manage')->name('promotions.create');
