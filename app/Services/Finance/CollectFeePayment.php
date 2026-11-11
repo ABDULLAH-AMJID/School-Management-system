@@ -7,14 +7,17 @@ use App\Models\FeeInvoice;
 use App\Models\JournalEntry;
 use App\Models\Payment;
 use App\Models\User;
+use App\Services\Messaging\TriggerStudentEventMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class CollectFeePayment
 {
+    public function __construct(private TriggerStudentEventMessage $messenger) {}
+
     public function handle(FeeInvoice $invoice, int $amount, string $method, ?string $reference, User $actor): Payment
     {
-        return DB::transaction(function () use ($invoice, $amount, $method, $reference, $actor) {
+        $payment = DB::transaction(function () use ($invoice, $amount, $method, $reference, $actor) {
             $invoice = FeeInvoice::query()->lockForUpdate()->findOrFail($invoice->id);
             if ($amount <= 0 || $amount > $invoice->balance) {
                 throw ValidationException::withMessages(['amount' => 'Payment must be greater than zero and cannot exceed the invoice balance.']);
@@ -31,5 +34,9 @@ final class CollectFeePayment
 
             return $payment;
         });
+        $invoice = $invoice->fresh(['student']);
+        $this->messenger->handle('fee_payment_received', 'payment', $payment->id, $invoice->student, $actor, ['receipt_no' => $payment->receipt_no, 'amount' => number_format($payment->amount / 100, 2), 'invoice_no' => $invoice->number, 'balance' => number_format($invoice->balance / 100, 2), 'payment_method' => ucfirst($payment->method)]);
+
+        return $payment;
     }
 }

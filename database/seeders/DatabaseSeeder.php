@@ -103,6 +103,7 @@ class DatabaseSeeder extends Seeder
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'complaint_resolved', 'name' => 'Complaint Resolution', 'body' => 'Complaint {{complaint_reference}} has been resolved: {{resolution}}', 'mode' => 'approval', 'active' => true]);
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'leave_reviewed', 'name' => 'Leave Decision', 'body' => 'Dear {{staff_name}}, your leave from {{starts_on}} to {{ends_on}} is {{leave_status}}. {{review_note}}', 'mode' => 'approval', 'active' => true]);
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'timetable_published', 'name' => 'Timetable Update', 'body' => 'The timetable for {{class_name}} has been updated to version {{timetable_version}}.', 'mode' => 'approval', 'active' => true]);
+        MessageTemplate::create(['school_id' => $school->id, 'event' => 'fee_payment_received', 'name' => 'Fee Receipt', 'body' => 'Payment received for {{student_name}}. Receipt {{receipt_no}}, amount PKR {{amount}}, invoice {{invoice_no}}, balance PKR {{balance}}, via {{payment_method}}.', 'mode' => 'approval', 'active' => true]);
 
         $year = AcademicYear::create(['school_id' => $school->id, 'name' => '2026–27', 'starts_on' => '2026-04-01', 'ends_on' => '2027-03-31', 'status' => 'active', 'is_current' => true]);
         AcademicYear::create(['school_id' => $school->id, 'name' => '2027–28', 'starts_on' => '2027-04-01', 'ends_on' => '2028-03-31', 'status' => 'draft', 'is_current' => false]);
