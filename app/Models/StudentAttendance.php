@@ -9,6 +9,11 @@ class StudentAttendance extends Model
 {
     protected $guarded = [];
 
+    public function attendanceSession(): BelongsTo
+    {
+        return $this->belongsTo(AttendanceSession::class);
+    }
+
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

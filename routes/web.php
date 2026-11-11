@@ -11,6 +11,7 @@ use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
+use App\Http\Controllers\Reporting\ReportController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Timetable\TimetableController;
 use App\Http\Controllers\Transport\TransportController;
@@ -41,6 +42,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
+    Route::get('/reports', [ReportController::class, 'index'])->middleware('permission:reports.view')->name('reports.index');
+    Route::get('/reports/students.csv', [ReportController::class, 'studentsCsv'])->middleware('permission:reports.export')->name('reports.students.csv');
+    Route::get('/reports/defaulters.csv', [ReportController::class, 'defaultersCsv'])->middleware('permission:reports.export')->name('reports.defaulters.csv');
     Route::get('/engagement', [EngagementController::class, 'index'])->middleware('permission:engagement.manage')->name('engagement.index');
     Route::post('/engagement/notices', [EngagementController::class, 'storeNotice'])->middleware('permission:engagement.manage')->name('engagement.notices.store');
     Route::post('/engagement/complaints', [EngagementController::class, 'storeComplaint'])->middleware('permission:complaints.manage')->name('engagement.complaints.store');
