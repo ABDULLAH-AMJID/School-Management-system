@@ -16,7 +16,7 @@ final class StaffAttendanceController extends Controller
     public function index(Request $request): View
     {
         $schoolId = $request->user()->school_id;
-        $date = $request->date('date', today())->toDateString();
+        $date = ($request->date('date') ?? today())->toDateString();
         $staff = StaffProfile::where(['school_id' => $schoolId, 'status' => 'active'])->with('user')->get();
         $records = StaffAttendance::where(['school_id' => $schoolId, 'attendance_date' => $date])->get()->keyBy('staff_profile_id');
 
@@ -37,6 +37,6 @@ final class StaffAttendanceController extends Controller
             }
         });
 
-        return back()->with('success','Staff attendance saved.');
+        return back()->with('success', 'Staff attendance saved.');
     }
 }

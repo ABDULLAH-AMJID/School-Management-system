@@ -22,7 +22,7 @@ final class AttendanceController extends Controller
         $schoolId = $request->user()->school_id;
         $sections = Section::whereHas('gradeLevel', fn ($q) => $q->where('school_id', $schoolId))->with('gradeLevel')->get();
         $sectionId = $request->integer('section_id') ?: $sections->first()?->id;
-        $date = $request->date('date', today())->toDateString();
+        $date = ($request->date('date') ?? today())->toDateString();
         $students = collect();
         $session = null;
         if ($sectionId) {
