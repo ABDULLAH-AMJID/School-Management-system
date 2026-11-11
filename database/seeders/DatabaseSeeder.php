@@ -11,6 +11,7 @@ use App\Models\ExamSession;
 use App\Models\FeeInvoice;
 use App\Models\FixedAsset;
 use App\Models\GradeLevel;
+use App\Models\GradeScale;
 use App\Models\InventoryItem;
 use App\Models\LeaveRequest;
 use App\Models\LibraryBook;
@@ -60,6 +61,7 @@ class DatabaseSeeder extends Seeder
             ['certificates.issue', 'Documents', 'Issue certificates'], ['certificates.revoke', 'Documents', 'Revoke certificates'],
             ['promotions.manage', 'Academics', 'Prepare promotions'], ['promotions.complete', 'Academics', 'Complete promotions'],
             ['access.manage', 'Platform', 'Manage users, roles and permissions'],
+            ['results.view', 'Assessment', 'View result cards'], ['results.export', 'Assessment', 'Export tabulation sheets'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -113,6 +115,10 @@ class DatabaseSeeder extends Seeder
 
         $room = Room::create(['school_id' => $school->id, 'name' => 'Room 9-A', 'building' => 'Main Block', 'capacity' => 40, 'type' => 'classroom']);
         $periods = collect([['Period 1', '08:00', '08:45'], ['Period 2', '08:45', '09:30'], ['Period 3', '09:30', '10:15'], ['Break', '10:15', '10:35'], ['Period 4', '10:35', '11:20'], ['Period 5', '11:20', '12:05']])->map(fn ($p, $i) => TimetablePeriod::create(['school_id' => $school->id, 'name' => $p[0], 'starts_at' => $p[1], 'ends_at' => $p[2], 'sequence' => $i + 1, 'is_break' => $p[0] === 'Break']));
+
+        foreach ([['A+', 80, 100, 4.0, 'Outstanding'], ['A', 70, 79.99, 3.5, 'Excellent'], ['B', 60, 69.99, 3.0, 'Very Good'], ['C', 50, 59.99, 2.5, 'Good'], ['D', 40, 49.99, 2.0, 'Satisfactory'], ['E', 33, 39.99, 1.0, 'Pass'], ['F', 0, 32.99, 0, 'Fail']] as $scale) {
+            GradeScale::create(['school_id' => $school->id, 'name' => 'Punjab Board Scale', 'minimum_percent' => $scale[1], 'maximum_percent' => $scale[2], 'grade' => $scale[0], 'grade_point' => $scale[3], 'remark' => $scale[4]]);
+        }
 
         $math = Subject::create(['school_id' => $school->id, 'name' => 'Mathematics', 'code' => 'MATH-09', 'type' => 'theory', 'max_marks' => 100]);
         $english = Subject::create(['school_id' => $school->id, 'name' => 'English', 'code' => 'ENG-09', 'type' => 'theory', 'max_marks' => 100]);

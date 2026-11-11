@@ -15,6 +15,7 @@ use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
 use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Reporting\ReportController;
+use App\Http\Controllers\Results\ResultController;
 use App\Http\Controllers\Security\SecurityController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Timetable\TimetableController;
@@ -42,6 +43,9 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::get('/timetable', [TimetableController::class, 'index'])->middleware('permission:timetable.manage')->name('timetable.index');
     Route::get('/timetable/create', [TimetableController::class, 'create'])->middleware('permission:timetable.manage')->name('timetable.create');
     Route::post('/timetable', [TimetableController::class, 'store'])->middleware('permission:timetable.manage')->name('timetable.store');
+    Route::get('/results', [ResultController::class, 'index'])->middleware('permission:results.view')->name('results.index');
+    Route::get('/results/{exam}/tabulation.csv', [ResultController::class, 'tabulationCsv'])->middleware('permission:results.export')->name('results.tabulation.csv');
+    Route::get('/results/{exam}/{student}', [ResultController::class, 'show'])->middleware('permission:results.view')->name('results.show');
     Route::get('/assessments', [AssessmentController::class, 'index'])->middleware('permission:exams.manage')->name('assessments.index');
     Route::get('/assessments/{component}/entry', [AssessmentController::class, 'entry'])->middleware('permission:exams.manage')->name('assessments.entry');
     Route::put('/assessments/{component}/marks', [AssessmentController::class, 'store'])->middleware('permission:exams.manage')->name('assessments.marks.store');
