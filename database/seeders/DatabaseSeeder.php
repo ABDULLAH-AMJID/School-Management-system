@@ -10,6 +10,8 @@ use App\Models\ExamSession;
 use App\Models\FeeInvoice;
 use App\Models\GradeLevel;
 use App\Models\LeaveRequest;
+use App\Models\LibraryBook;
+use App\Models\LibraryCopy;
 use App\Models\MessageTemplate;
 use App\Models\Permission;
 use App\Models\Role;
@@ -41,6 +43,7 @@ class DatabaseSeeder extends Seeder
             ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
             ['hr.manage', 'HR', 'Manage staff'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'],
             ['timetable.manage', 'Academics', 'Manage timetable'],
+            ['library.manage', 'Library', 'Manage catalogue'], ['library.issue', 'Library', 'Issue and return books'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -52,6 +55,9 @@ class DatabaseSeeder extends Seeder
         foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense']] as $account) {
             Account::create(['school_id' => $school->id, 'code' => $account[0], 'name' => $account[1], 'type' => $account[2]]);
         }
+
+        $demoBook = LibraryBook::create(['school_id' => $school->id, 'isbn' => '9780199062131', 'title' => 'Mathematics for Secondary Schools', 'author' => 'Punjab Textbook Board', 'publisher' => 'PCTB', 'category' => 'Mathematics', 'publication_year' => 2026, 'shelf' => 'M-01']);
+        LibraryCopy::create(['library_book_id' => $demoBook->id, 'accession_no' => 'LIB-00001', 'barcode' => '9780199062131-001', 'condition' => 'good', 'status' => 'available', 'acquired_on' => today(), 'cost' => 95000]);
 
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'absence', 'name' => 'Student absence', 'body' => 'Dear Parent, {{student_name}} ({{admission_no}}) was marked absent today. Please contact the school if needed.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'fee_due', 'name' => 'Fee reminder', 'body' => 'Dear Parent, fee payment for {{student_name}} is due. Outstanding amount: PKR {{amount}}. Please ignore if already paid.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
