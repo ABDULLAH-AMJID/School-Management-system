@@ -15,6 +15,7 @@ use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
+use App\Http\Controllers\Payments\OnlinePaymentController;
 use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Reconciliation\BankReconciliationController;
 use App\Http\Controllers\Reporting\ReportController;
@@ -109,6 +110,7 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/finance/reconciliation', [BankReconciliationController::class, 'store'])->middleware('permission:reconciliation.manage')->name('reconciliation.store');
     Route::post('/finance/reconciliation/{run}/complete', [BankReconciliationController::class, 'complete'])->middleware('permission:reconciliation.complete')->name('reconciliation.complete');
     Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.manage')->name('finance.index');
+    Route::post('/finance/invoices/{invoice}/online-payment', [OnlinePaymentController::class, 'store'])->middleware('permission:payments.online')->name('payments.online.store');
     Route::post('/finance/invoices/{invoice}/collect', [FinanceController::class, 'collect'])->middleware('permission:finance.manage')->name('finance.collect');
     Route::post('/finance/expenses', [FinanceController::class, 'storeExpense'])->middleware('permission:expenses.create')->name('finance.expenses.store');
     Route::post('/finance/expenses/{voucher}/approve', [FinanceController::class, 'approveExpense'])->middleware('permission:expenses.approve')->name('finance.expenses.approve');
