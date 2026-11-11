@@ -5,6 +5,7 @@ use App\Http\Controllers\Assessment\AssessmentController;
 use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Student\StudentController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
-    Route::view('/finance', 'modules.coming-soon', ['title' => 'Finance & Accounts'])->name('finance.index');
+    Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.manage')->name('finance.index');
+    Route::post('/finance/invoices/{invoice}/collect', [FinanceController::class, 'collect'])->middleware('permission:finance.manage')->name('finance.collect');
     Route::view('/communication', 'modules.coming-soon', ['title' => 'WhatsApp Centre'])->name('communication.index');
 });
