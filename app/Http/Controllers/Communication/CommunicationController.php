@@ -24,12 +24,29 @@ final class CommunicationController extends Controller
 
     public function store(Request $request, QueueMessage $service): RedirectResponse
     {
-        $data = $request->validate(['template_id' => ['required', Rule::exists('message_templates', 'id')], 'student_id' => ['required', Rule::exists('students', 'id')], 'recipient' => ['required', 'regex:/^\+[1-9]\d{7,14}$/']]);
+        $data = $request->validate(['template_id' => ['required', Rule::exists('message_templates', 'id')], 'student_id' => ['required', Rule::exists('students', 'id')], 'recipient' => ['required', 'regex:/^\+[1-9]\d{7,14}$/'], 'scheduled_for' => ['nullable', 'date', 'after_or_equal:now']]);
         $template = MessageTemplate::where('school_id', $request->user()->school_id)->findOrFail($data['template_id']);
         $student = Student::where('school_id', $request->user()->school_id)->findOrFail($data['student_id']);
-        $message = $service->create($template, $student, $data['recipient'], $request->user());
+        $message = $service->create($template, $student, $data['recipient'], $request->user(), [], $data['scheduled_for'] ?? null);
 
         return back()->with('success', $message->status === 'approved' ? 'Message queued for delivery.' : 'Message created and awaits approval.');
+    }
+
+    public function storeTemplate(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['event' => ['required', 'alpha_dash', 'max:80'], 'name' => ['required', 'string', 'max:120'], 'body' => ['required', 'string', 'max:4000'], 'mode' => ['required', Rule::in(['automatic', 'approval', 'manual', 'disabled'])], 'quiet_from' => ['nullable', 'date_format:H:i'], 'quiet_until' => ['nullable', 'date_format:H:i']]);
+        MessageTemplate::create([...$data, 'school_id' => $request->user()->school_id, 'active' => true]);
+
+        return back()->with('success', 'Message template created.');
+    }
+
+    public function updateTemplate(Request $request, MessageTemplate $template): RedirectResponse
+    {
+        abort_unless($template->school_id === $request->user()->school_id, 403);
+        $data = $request->validate(['name' => ['required', 'string', 'max:120'], 'body' => ['required', 'string', 'max:4000'], 'mode' => ['required', Rule::in(['automatic', 'approval', 'manual', 'disabled'])], 'quiet_from' => ['nullable', 'date_format:H:i'], 'quiet_until' => ['nullable', 'date_format:H:i'], 'active' => ['required', 'boolean']]);
+        $template->update($data);
+
+        return back()->with('success', 'Message template updated.');
     }
 
     public function approve(Request $request, OutboundMessage $message): RedirectResponse
@@ -48,6 +65,6 @@ final class CommunicationController extends Controller
         abort_unless(in_array($message->status, ['pending_approval', 'approved', 'failed'], true), 409);
         $message->update(['status' => 'cancelled']);
 
-        return back()->with('success','Message cancelled.');
+        return back()->with('success', 'Message cancelled.');
     }
 }
