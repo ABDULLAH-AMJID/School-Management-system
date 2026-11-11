@@ -101,6 +101,7 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/hr/leaves', [HrController::class, 'storeLeave'])->middleware('permission:hr.leave.request')->name('hr.leaves.store');
     Route::post('/hr/leaves/{leave}/review', [HrController::class, 'reviewLeave'])->middleware('permission:hr.approve')->name('hr.leaves.review');
     Route::post('/hr/payroll', [HrController::class, 'generatePayroll'])->middleware('permission:payroll.manage')->name('hr.payroll.generate');
+    Route::get('/hr/payslips/{payslip}', [HrController::class, 'payslip'])->middleware('permission:payroll.manage')->name('hr.payslips.show');
     Route::post('/hr/payroll/{run}/approve', [HrController::class, 'approvePayroll'])->middleware('permission:payroll.approve')->name('hr.payroll.approve');
     Route::post('/finance/invoices/{invoice}/concessions', [FeeConcessionController::class, 'store'])->middleware('permission:concessions.create')->name('concessions.store');
     Route::post('/finance/concessions/{concession}/approve', [FeeConcessionController::class, 'approve'])->middleware('permission:concessions.approve')->name('concessions.approve');

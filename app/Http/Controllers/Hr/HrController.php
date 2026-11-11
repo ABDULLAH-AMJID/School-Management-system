@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Hr;
 use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use App\Models\PayrollRun;
+use App\Models\Payslip;
 use App\Models\StaffProfile;
 use App\Services\Messaging\TriggerDirectEventMessage;
 use Illuminate\Http\RedirectResponse;
@@ -63,7 +64,15 @@ final class HrController extends Controller
         return back()->with('success', 'Payroll generated for '.$run->period.'.');
     }
 
-    public function approvePayroll(Request $request, PayrollRun $run): RedirectResponse
+    public function payslip(Request $request, Payslip $payslip): View
+    {
+        $payslip->load(['staffProfile.user', 'payrollRun']);
+        abort_unless($payslip->staffProfile->school_id === $request->user()->school_id, 403);
+
+        return view('hr.payslip', compact('payslip'));
+    }
+
+    public function approvePayroll(Request $request, PayrollRun $run, TriggerDirectEventMessage $messenger): RedirectResponse
     {
         abort_unless($run->school_id === $request->user()->school_id, 403);
         abort_unless($run->status === 'draft' && $run->payslips()->exists(), 409);
@@ -71,6 +80,13 @@ final class HrController extends Controller
             $run->update(['status' => 'approved', 'approved_by' => $request->user()->id, 'approved_at' => now()]);
             $run->payslips()->update(['status' => 'approved']);
         });
+        $run->load('payslips.staffProfile.user');
+        foreach ($run->payslips as $payslip) {
+            $staffUser = $payslip->staffProfile->user;
+            if ($staffUser?->phone) {
+                $messenger->handle($run->school_id, 'payroll_approved', 'payslip', $payslip->id, $staffUser->phone, $request->user(), ['staff_name' => $staffUser->name, 'pay_period' => $run->period, 'net_salary' => number_format($payslip->net_salary / 100, 2)]);
+            }
+        }
 
         return back()->with('success', 'Payroll approved and locked.');
     }

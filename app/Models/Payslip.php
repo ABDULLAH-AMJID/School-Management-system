@@ -9,6 +9,11 @@ class Payslip extends Model
 {
     protected $guarded = [];
 
+    public function payrollRun(): BelongsTo
+    {
+        return $this->belongsTo(PayrollRun::class);
+    }
+
     public function staffProfile(): BelongsTo
     {
         return $this->belongsTo(StaffProfile::class);
