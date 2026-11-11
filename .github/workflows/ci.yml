@@ -1,0 +1,48 @@
+name: Quality checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, openssl
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: touch database/database.sqlite
+      - run: php artisan migrate:fresh --seed --force
+      - run: vendor/bin/pint --test
+      - run: php artisan test
+      - run: composer audit --locked --no-interaction
+      - run: node --check whatsapp-connector/src/server.js
+
+  secret-patterns:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject common committed credential patterns
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE '(github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' -- ':!*.md' ':!.github/workflows/ci.yml'; then
+            echo 'Potential committed credential detected.' >&2
+            exit 1
+          fi

@@ -25,3 +25,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local school data and connector secrets
+/database/*.sqlite
+/storage/app/private/backups/
+/whatsapp-connector/session/
+/whatsapp-connector/.env
