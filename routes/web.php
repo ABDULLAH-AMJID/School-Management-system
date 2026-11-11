@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Academic\AcademicController;
+use App\Http\Controllers\Assessment\AssessmentController;
 use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
@@ -18,6 +19,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/students/create', [StudentController::class, 'create'])->middleware('permission:students.create')->name('students.create');
     Route::post('/students', [StudentController::class, 'store'])->middleware('permission:students.create')->name('students.store');
     Route::get('/academics', [AcademicController::class, 'index'])->name('academics.index');
+    Route::get('/assessments', [AssessmentController::class, 'index'])->middleware('permission:exams.manage')->name('assessments.index');
+    Route::get('/assessments/{component}/entry', [AssessmentController::class, 'entry'])->middleware('permission:exams.manage')->name('assessments.entry');
+    Route::put('/assessments/{component}/marks', [AssessmentController::class, 'store'])->middleware('permission:exams.manage')->name('assessments.marks.store');
+    Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
     Route::view('/finance', 'modules.coming-soon', ['title' => 'Finance & Accounts'])->name('finance.index');

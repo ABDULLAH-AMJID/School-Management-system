@@ -3,13 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\AcademicYear;
+use App\Models\AssessmentComponent;
 use App\Models\Enrollment;
+use App\Models\ExamSession;
 use App\Models\GradeLevel;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\Section;
 use App\Models\Student;
+use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -25,6 +28,7 @@ class DatabaseSeeder extends Seeder
             ['students.update', 'People', 'Update students'], ['students.archive', 'People', 'Archive students'],
             ['attendance.manage', 'Attendance', 'Manage attendance'], ['finance.manage', 'Finance', 'Manage finance'],
             ['settings.manage', 'Platform', 'Manage settings'],
+            ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -41,6 +45,13 @@ class DatabaseSeeder extends Seeder
             return Section::create(['grade_level_id' => $grade->id, 'name' => 'A', 'capacity' => 40]);
         });
         $demoSection = $sections[11];
+
+        $math = Subject::create(['school_id' => $school->id, 'name' => 'Mathematics', 'code' => 'MATH-09', 'type' => 'theory', 'max_marks' => 100]);
+        $english = Subject::create(['school_id' => $school->id, 'name' => 'English', 'code' => 'ENG-09', 'type' => 'theory', 'max_marks' => 100]);
+        $exam = ExamSession::create(['school_id' => $school->id, 'academic_year_id' => $year->id, 'term_id' => $year->terms()->first()->id, 'name' => 'Mid-Term Examination', 'type' => 'internal', 'starts_on' => '2026-11-16', 'ends_on' => '2026-11-25', 'status' => 'marks_entry']);
+        AssessmentComponent::create(['exam_session_id' => $exam->id, 'subject_id' => $math->id, 'grade_level_id' => $demoSection->grade_level_id, 'name' => 'Written Paper', 'max_marks' => 100, 'weight_percent' => 100, 'pass_marks' => 33]);
+        AssessmentComponent::create(['exam_session_id' => $exam->id, 'subject_id' => $english->id, 'grade_level_id' => $demoSection->grade_level_id, 'name' => 'Written Paper', 'max_marks' => 100, 'weight_percent' => 100, 'pass_marks' => 33]);
+
         foreach (range(1, 8) as $i) {
             $student = Student::create(['school_id' => $school->id, 'public_id' => (string) Str::ulid(), 'admission_no' => 'GF-26-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT), 'first_name' => ['Ayaan', 'Fatima', 'Muhammad', 'Ayesha', 'Ali', 'Zainab', 'Hamza', 'Hira'][$i - 1], 'last_name' => ['Khan', 'Ahmed', 'Raza', 'Malik', 'Hussain', 'Iqbal', 'Shah', 'Noor'][$i - 1], 'date_of_birth' => now()->subYears(8 + $i), 'gender' => $i % 2 ? 'male' : 'female', 'status' => 'active', 'admitted_on' => now()->subMonths($i)]);
             Enrollment::create(['student_id' => $student->id, 'academic_year_id' => $year->id, 'section_id' => $demoSection->id, 'roll_no' => str_pad((string) $i, 2, '0', STR_PAD_LEFT), 'status' => 'active']);
