@@ -70,6 +70,8 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/promotions', [PromotionController::class, 'create'])->middleware('permission:promotions.manage')->name('promotions.create');
     Route::post('/promotions/{run}/complete', [PromotionController::class, 'complete'])->middleware('permission:promotions.complete')->name('promotions.complete');
     Route::get('/reports', [ReportController::class, 'index'])->middleware('permission:reports.view')->name('reports.index');
+    Route::get('/reports/trial-balance.csv', [ReportController::class, 'trialBalanceCsv'])->middleware('permission:reports.export')->name('reports.trial-balance');
+    Route::get('/reports/ledger/{account}.csv', [ReportController::class, 'ledgerCsv'])->middleware('permission:reports.export')->name('reports.ledger');
     Route::get('/reports/students.csv', [ReportController::class, 'studentsCsv'])->middleware('permission:reports.export')->name('reports.students.csv');
     Route::get('/reports/defaulters.csv', [ReportController::class, 'defaultersCsv'])->middleware('permission:reports.export')->name('reports.defaulters.csv');
     Route::get('/engagement', [EngagementController::class, 'index'])->middleware('permission:engagement.manage')->name('engagement.index');

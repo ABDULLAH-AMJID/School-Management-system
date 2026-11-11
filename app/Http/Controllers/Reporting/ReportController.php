@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Reporting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Account;
 use App\Models\FeeInvoice;
+use App\Models\JournalLine;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\StudentAttendance;
@@ -22,6 +24,43 @@ final class ReportController extends Controller
         $attendance = StudentAttendance::whereHas('student', fn ($q) => $q->where('school_id', $schoolId))->select('status', DB::raw('count(*) as total'))->groupBy('status')->pluck('total', 'status');
 
         return view('reports.index', compact('statusCounts', 'finance', 'attendance'));
+    }
+
+    public function trialBalanceCsv(Request $request): StreamedResponse
+    {
+        $schoolId = $request->user()->school_id;
+        $asOf = ($request->date('as_of') ?? today())->toDateString();
+        $accounts = Account::where('school_id', $schoolId)->withSum(['journalLines as debit_total' => fn ($q) => $q->whereHas('journalEntry', fn ($j) => $j->where('status', 'posted')->whereDate('entry_date', '<=', $asOf))], 'debit')->withSum(['journalLines as credit_total' => fn ($q) => $q->whereHas('journalEntry', fn ($j) => $j->where('status', 'posted')->whereDate('entry_date', '<=', $asOf))], 'credit')->orderBy('code')->get();
+
+        return response()->streamDownload(function () use ($accounts, $asOf) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Trial Balance as of', $asOf]);
+            fputcsv($out, ['Code', 'Account', 'Type', 'Debit PKR', 'Credit PKR']);
+            foreach ($accounts as $a) {
+                $balance = ($a->debit_total ?? 0) - ($a->credit_total ?? 0);
+                fputcsv($out, [$a->code, $a->name, $a->type, max(0, $balance) / 100, max(0, -$balance) / 100]);
+            } fputcsv($out, ['', 'TOTAL', '', $accounts->sum(fn ($a) => max(0, ($a->debit_total ?? 0) - ($a->credit_total ?? 0))) / 100, $accounts->sum(fn ($a) => max(0, ($a->credit_total ?? 0) - ($a->debit_total ?? 0))) / 100]);
+            fclose($out);
+        }, 'trial-balance-'.$asOf.'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    public function ledgerCsv(Request $request, Account $account): StreamedResponse
+    {
+        abort_unless($account->school_id === $request->user()->school_id, 403);
+        $from = ($request->date('from') ?? today()->startOfYear())->toDateString();
+        $to = ($request->date('to') ?? today())->toDateString();
+        $lines = JournalLine::with('journalEntry')->where('account_id', $account->id)->whereHas('journalEntry', fn ($q) => $q->where('status', 'posted')->whereBetween('entry_date', [$from, $to]))->get()->sortBy(fn ($l) => $l->journalEntry->entry_date);
+
+        return response()->streamDownload(function () use ($lines, $account) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, [$account->code, $account->name]);
+            fputcsv($out, ['Date', 'Journal', 'Description', 'Debit PKR', 'Credit PKR', 'Running Balance PKR']);
+            $balance = 0;
+            foreach ($lines as $l) {
+                $balance += $l->debit - $l->credit;
+                fputcsv($out, [$l->journalEntry->entry_date->toDateString(), $l->journalEntry->number, $l->memo ?: $l->journalEntry->description, $l->debit / 100, $l->credit / 100, $balance / 100]);
+            } fclose($out);
+        }, 'ledger-'.$account->code.'.csv', ['Content-Type' => 'text/csv']);
     }
 
     public function studentsCsv(Request $request): StreamedResponse
