@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Assessment;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\GenerateResultNotifications;
 use App\Models\AssessmentComponent;
 use App\Models\Enrollment;
 use App\Models\ExamSession;
@@ -51,7 +52,8 @@ final class AssessmentController extends Controller
         if ($missing) {
             return back()->withErrors(['publish' => 'Every assessment component must contain marks before publishing.']);
         }$exam->update(['status' => 'published', 'published_at' => now(), 'published_by' => $request->user()->id]);
+        GenerateResultNotifications::dispatch($exam->id, $request->user()->id);
 
-        return back()->with('success','Results published successfully.');
+        return back()->with('success', 'Results published successfully.');
     }
 }
