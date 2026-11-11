@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
         $permissions = collect([
             ['students.view', 'People', 'View students'], ['students.create', 'People', 'Admit students'],
             ['students.update', 'People', 'Update students'], ['students.archive', 'People', 'Archive students'],
-            ['attendance.manage', 'Attendance', 'Manage attendance'], ['finance.manage', 'Finance', 'Manage finance'],
+            ['attendance.manage', 'Attendance', 'Manage attendance'], ['finance.manage', 'Finance', 'Manage finance'], ['expenses.create', 'Finance', 'Submit expense vouchers'], ['expenses.approve', 'Finance', 'Approve expense vouchers'],
             ['settings.manage', 'Platform', 'Manage settings'],
             ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
             ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
@@ -71,7 +71,7 @@ class DatabaseSeeder extends Seeder
         $teacherRole = Role::create(['name' => 'teacher', 'label' => 'Teacher', 'system' => true]);
         $teacherRole->permissions()->sync(Permission::whereIn('name', ['students.view', 'attendance.manage', 'exams.manage', 'timetable.manage'])->pluck('id'));
         $cashierRole = Role::create(['name' => 'cashier', 'label' => 'Cashier', 'system' => true]);
-        $cashierRole->permissions()->sync(Permission::whereIn('name', ['finance.manage', 'reports.view'])->pluck('id'));
+        $cashierRole->permissions()->sync(Permission::whereIn('name', ['finance.manage', 'expenses.create', 'reports.view'])->pluck('id'));
         $librarianRole = Role::create(['name' => 'librarian', 'label' => 'Librarian', 'system' => true]);
         $librarianRole->permissions()->sync(Permission::whereIn('name', ['library.manage', 'library.issue'])->pluck('id'));
 
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
         $teacherUser->roles()->attach($teacherRole);
         $staff = StaffProfile::create(['school_id' => $school->id, 'user_id' => $teacherUser->id, 'employee_no' => 'EMP-0001', 'designation' => 'Senior Teacher', 'department' => 'Academics', 'joined_on' => '2023-08-01', 'employment_type' => 'permanent', 'basic_salary' => 8500000, 'status' => 'active']);
         LeaveRequest::create(['staff_profile_id' => $staff->id, 'type' => 'casual', 'starts_on' => today()->addDays(3), 'ends_on' => today()->addDays(4), 'days' => 2, 'reason' => 'Family commitment', 'status' => 'pending']);
-        foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense']] as $account) {
+        foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense'], ['5010', 'Administrative Expense', 'expense'], ['5020', 'Utilities Expense', 'expense']] as $account) {
             Account::create(['school_id' => $school->id, 'code' => $account[0], 'name' => $account[1], 'type' => $account[2]]);
         }
 

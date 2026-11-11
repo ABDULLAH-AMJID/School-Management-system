@@ -93,6 +93,9 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/hr/payroll/{run}/approve', [HrController::class, 'approvePayroll'])->middleware('permission:payroll.approve')->name('hr.payroll.approve');
     Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.manage')->name('finance.index');
     Route::post('/finance/invoices/{invoice}/collect', [FinanceController::class, 'collect'])->middleware('permission:finance.manage')->name('finance.collect');
+    Route::post('/finance/expenses', [FinanceController::class, 'storeExpense'])->middleware('permission:expenses.create')->name('finance.expenses.store');
+    Route::post('/finance/expenses/{voucher}/approve', [FinanceController::class, 'approveExpense'])->middleware('permission:expenses.approve')->name('finance.expenses.approve');
+    Route::post('/finance/expenses/{voucher}/reject', [FinanceController::class, 'rejectExpense'])->middleware('permission:expenses.approve')->name('finance.expenses.reject');
     Route::get('/communication', [CommunicationController::class, 'index'])->middleware('permission:messages.manage')->name('communication.index');
     Route::post('/communication', [CommunicationController::class, 'store'])->middleware('permission:messages.manage')->name('communication.store');
     Route::post('/communication/{message}/approve', [CommunicationController::class, 'approve'])->middleware('permission:messages.approve')->name('communication.approve');
