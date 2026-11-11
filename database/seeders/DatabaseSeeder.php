@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
             ['settings.manage', 'Platform', 'Manage settings'],
             ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
             ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
-            ['hr.manage', 'HR', 'Manage staff'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'],
+            ['hr.manage', 'HR', 'Manage staff'], ['hr.leave.request', 'HR', 'Request own leave'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'],
             ['timetable.manage', 'Academics', 'Manage timetable'],
             ['library.manage', 'Library', 'Manage catalogue'], ['library.issue', 'Library', 'Issue and return books'],
             ['transport.manage', 'Transport', 'Manage school transport'],
@@ -69,7 +69,7 @@ class DatabaseSeeder extends Seeder
         $user = User::create(['school_id' => $school->id, 'public_id' => (string) Str::ulid(), 'name' => 'Abdullah Amjid', 'email' => 'principal@school.test', 'phone' => '+923001234567', 'status' => 'active', 'password' => 'password']);
         $user->roles()->attach($principal);
         $teacherRole = Role::create(['name' => 'teacher', 'label' => 'Teacher', 'system' => true]);
-        $teacherRole->permissions()->sync(Permission::whereIn('name', ['students.view', 'attendance.manage', 'exams.manage', 'timetable.manage'])->pluck('id'));
+        $teacherRole->permissions()->sync(Permission::whereIn('name', ['students.view', 'attendance.manage', 'exams.manage', 'timetable.manage', 'hr.leave.request'])->pluck('id'));
         $cashierRole = Role::create(['name' => 'cashier', 'label' => 'Cashier', 'system' => true]);
         $cashierRole->permissions()->sync(Permission::whereIn('name', ['finance.manage', 'expenses.create', 'concessions.create', 'reports.view'])->pluck('id'));
         $librarianRole = Role::create(['name' => 'librarian', 'label' => 'Librarian', 'system' => true]);
@@ -101,6 +101,7 @@ class DatabaseSeeder extends Seeder
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'result_published', 'name' => 'Result Published', 'body' => 'Dear guardian, {{student_name}} scored {{percentage}}% in {{exam_name}}. Status: {{result_status}}.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'complaint_registered', 'name' => 'Complaint Acknowledgement', 'body' => 'Your complaint {{complaint_reference}} regarding {{complaint_subject}} has been registered.', 'mode' => 'automatic', 'active' => true]);
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'complaint_resolved', 'name' => 'Complaint Resolution', 'body' => 'Complaint {{complaint_reference}} has been resolved: {{resolution}}', 'mode' => 'approval', 'active' => true]);
+        MessageTemplate::create(['school_id' => $school->id, 'event' => 'leave_reviewed', 'name' => 'Leave Decision', 'body' => 'Dear {{staff_name}}, your leave from {{starts_on}} to {{ends_on}} is {{leave_status}}. {{review_note}}', 'mode' => 'approval', 'active' => true]);
 
         $year = AcademicYear::create(['school_id' => $school->id, 'name' => '2026–27', 'starts_on' => '2026-04-01', 'ends_on' => '2027-03-31', 'status' => 'active', 'is_current' => true]);
         AcademicYear::create(['school_id' => $school->id, 'name' => '2027–28', 'starts_on' => '2027-04-01', 'ends_on' => '2028-03-31', 'status' => 'draft', 'is_current' => false]);

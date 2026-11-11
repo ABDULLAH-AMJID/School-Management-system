@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use App\Models\PayrollRun;
 use App\Models\StaffProfile;
+use App\Services\Messaging\TriggerDirectEventMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class HrController extends Controller
@@ -20,12 +22,27 @@ final class HrController extends Controller
         return view('hr.index', ['staff' => StaffProfile::where('school_id', $schoolId)->with('user')->get(), 'leaves' => LeaveRequest::whereHas('staffProfile', fn ($q) => $q->where('school_id', $schoolId))->with('staffProfile.user')->latest()->get(), 'runs' => PayrollRun::where('school_id', $schoolId)->withCount('payslips')->latest('period_start')->get()]);
     }
 
-    public function reviewLeave(Request $request, LeaveRequest $leave): RedirectResponse
+    public function storeLeave(Request $request): RedirectResponse
+    {
+        $profile = StaffProfile::where(['school_id' => $request->user()->school_id, 'user_id' => $request->user()->id])->firstOrFail();
+        $data = $request->validate(['type' => ['required', Rule::in(['casual', 'sick', 'annual', 'unpaid', 'other'])], 'starts_on' => ['required', 'date', 'after_or_equal:today'], 'ends_on' => ['required', 'date', 'after_or_equal:starts_on'], 'reason' => ['required', 'string', 'max:1000']]);
+        $days = now()->parse($data['starts_on'])->diffInDays(now()->parse($data['ends_on'])) + 1;
+        LeaveRequest::create([...$data, 'staff_profile_id' => $profile->id, 'days' => $days, 'status' => 'pending']);
+
+        return back()->with('success', 'Leave request submitted.');
+    }
+
+    public function reviewLeave(Request $request, LeaveRequest $leave, TriggerDirectEventMessage $messenger): RedirectResponse
     {
         abort_unless($leave->staffProfile()->where('school_id', $request->user()->school_id)->exists(), 403);
         $data = $request->validate(['decision' => ['required', 'in:approved,rejected'], 'review_note' => ['nullable', 'string', 'max:500']]);
         abort_unless($leave->status === 'pending', 409);
         $leave->update(['status' => $data['decision'], 'reviewed_by' => $request->user()->id, 'reviewed_at' => now(), 'review_note' => $data['review_note'] ?? null]);
+        $leave->load('staffProfile.user');
+        $staffUser = $leave->staffProfile->user;
+        if ($staffUser?->phone) {
+            $messenger->handle($request->user()->school_id, 'leave_reviewed', 'leave_request', $leave->id, $staffUser->phone, $request->user(), ['staff_name' => $staffUser->name, 'leave_status' => $data['decision'], 'starts_on' => $leave->starts_on->toDateString(), 'ends_on' => $leave->ends_on->toDateString(), 'review_note' => $data['review_note'] ?? '']);
+        }
 
         return back()->with('success', 'Leave request '.$data['decision'].'.');
     }
@@ -40,7 +57,7 @@ final class HrController extends Controller
                 $run->payslips()->firstOrCreate(['staff_profile_id' => $staff->id], ['basic_salary' => $staff->basic_salary, 'allowances' => 0, 'deductions' => 0, 'net_salary' => $staff->basic_salary, 'status' => 'draft']);
             }
 
-return $run;
+            return $run;
         });
 
         return back()->with('success', 'Payroll generated for '.$run->period.'.');
@@ -55,6 +72,6 @@ return $run;
             $run->payslips()->update(['status' => 'approved']);
         });
 
-        return back()->with('success','Payroll approved and locked.');
+        return back()->with('success', 'Payroll approved and locked.');
     }
 }

@@ -97,6 +97,7 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::get('/staff-attendance', [StaffAttendanceController::class, 'index'])->middleware('permission:staff-attendance.manage')->name('staff-attendance.index');
     Route::post('/staff-attendance', [StaffAttendanceController::class, 'store'])->middleware('permission:staff-attendance.manage')->name('staff-attendance.store');
     Route::get('/hr', [HrController::class, 'index'])->middleware('permission:hr.manage')->name('hr.index');
+    Route::post('/hr/leaves', [HrController::class, 'storeLeave'])->middleware('permission:hr.leave.request')->name('hr.leaves.store');
     Route::post('/hr/leaves/{leave}/review', [HrController::class, 'reviewLeave'])->middleware('permission:hr.approve')->name('hr.leaves.review');
     Route::post('/hr/payroll', [HrController::class, 'generatePayroll'])->middleware('permission:payroll.manage')->name('hr.payroll.generate');
     Route::post('/hr/payroll/{run}/approve', [HrController::class, 'approvePayroll'])->middleware('permission:payroll.approve')->name('hr.payroll.approve');
