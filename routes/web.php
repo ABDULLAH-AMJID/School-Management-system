@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Academic\AcademicController;
+use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Student\StudentController;
@@ -15,7 +17,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/students', [StudentController::class, 'index'])->middleware('permission:students.view')->name('students.index');
     Route::get('/students/create', [StudentController::class, 'create'])->middleware('permission:students.create')->name('students.create');
     Route::post('/students', [StudentController::class, 'store'])->middleware('permission:students.create')->name('students.store');
-    Route::view('/attendance', 'modules.coming-soon', ['title' => 'Attendance'])->name('attendance.index');
+    Route::get('/academics', [AcademicController::class, 'index'])->name('academics.index');
+    Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
+    Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
     Route::view('/finance', 'modules.coming-soon', ['title' => 'Finance & Accounts'])->name('finance.index');
     Route::view('/communication', 'modules.coming-soon', ['title' => 'WhatsApp Centre'])->name('communication.index');
 });
