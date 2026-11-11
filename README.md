@@ -121,6 +121,11 @@ The suite covers authorization, finance invariants, accounting balance, lifecycl
 - [Architecture decisions](docs/architecture/)
 - [Security documentation](docs/security/)
 - [Product requirements](docs/product/)
+- [Principal/admin guide](docs/user-guides/PRINCIPAL_ADMIN_GUIDE.md)
+- [Teacher guide](docs/user-guides/TEACHER_GUIDE.md)
+- [Finance guide](docs/user-guides/FINANCE_GUIDE.md)
+- [Daily operations checklist](docs/user-guides/DAILY_OPERATIONS_CHECKLIST.md)
+- [User acceptance test plan](docs/USER_ACCEPTANCE_TEST_PLAN.md)
 
 Windows startup helpers are under `scripts/windows/`. Review paths, service-account permissions and firewall rules before registering the startup task.
 
