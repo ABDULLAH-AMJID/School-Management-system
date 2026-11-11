@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
             ['settings.manage', 'Platform', 'Manage settings'],
             ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
             ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
-            ['hr.manage', 'HR', 'Manage staff'], ['hr.leave.request', 'HR', 'Request own leave'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'],
+            ['hr.manage', 'HR', 'Manage staff'], ['hr.leave.request', 'HR', 'Request own leave'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'], ['payroll.pay', 'Payroll', 'Pay approved payroll'],
             ['timetable.manage', 'Academics', 'Manage timetable'],
             ['library.manage', 'Library', 'Manage catalogue'], ['library.issue', 'Library', 'Issue and return books'],
             ['transport.manage', 'Transport', 'Manage school transport'],

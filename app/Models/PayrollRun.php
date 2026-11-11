@@ -11,7 +11,7 @@ class PayrollRun extends Model
 
     protected function casts(): array
     {
-        return ['period_start' => 'date', 'period_end' => 'date', 'approved_at' => 'datetime'];
+        return ['period_start' => 'date', 'period_end' => 'date', 'approved_at' => 'datetime', 'paid_at' => 'datetime'];
     }
 
     public function payslips(): HasMany

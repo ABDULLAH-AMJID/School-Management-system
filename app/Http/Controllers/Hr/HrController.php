@@ -22,7 +22,9 @@ final class HrController extends Controller
     {
         $schoolId = $request->user()->school_id;
 
-        return view('hr.index', ['staff' => StaffProfile::where('school_id', $schoolId)->with('user')->get(), 'leaves' => LeaveRequest::whereHas('staffProfile', fn ($q) => $q->where('school_id', $schoolId))->with('staffProfile.user')->latest()->get(), 'runs' => PayrollRun::where('school_id', $schoolId)->withCount('payslips')->latest('period_start')->get()]);
+        $paymentAccounts = Account::where('school_id', $schoolId)->where('type', 'asset')->where('active', true)->get();
+
+        return view('hr.index', ['paymentAccounts' => $paymentAccounts, 'staff' => StaffProfile::where('school_id', $schoolId)->with('user')->get(), 'leaves' => LeaveRequest::whereHas('staffProfile', fn ($q) => $q->where('school_id', $schoolId))->with('staffProfile.user')->latest()->get(), 'runs' => PayrollRun::where('school_id', $schoolId)->withCount('payslips')->latest('period_start')->get()]);
     }
 
     public function storeLeave(Request $request): RedirectResponse
@@ -64,6 +66,25 @@ final class HrController extends Controller
         });
 
         return back()->with('success', 'Payroll generated for '.$run->period.'.');
+    }
+
+    public function payPayroll(Request $request, PayrollRun $run): RedirectResponse
+    {
+        abort_unless($run->school_id === $request->user()->school_id, 403);
+        abort_unless($run->status === 'approved', 409);
+        $data = $request->validate(['payment_account_id' => ['required', Rule::exists('accounts', 'id')->where(fn ($q) => $q->where(['school_id' => $run->school_id, 'type' => 'asset', 'active' => true]))], 'payment_reference' => ['required', 'string', 'max:100']]);
+        DB::transaction(function () use ($run, $request, $data) {
+            $locked = PayrollRun::lockForUpdate()->findOrFail($run->id);
+            abort_unless($locked->status === 'approved', 409);
+            $total = $locked->payslips()->sum('net_salary');
+            $payable = Account::where(['school_id' => $locked->school_id, 'code' => '2100'])->firstOrFail();
+            $entry = JournalEntry::create(['school_id' => $locked->school_id, 'number' => 'JV-PAYMENT-'.$locked->period, 'entry_date' => today(), 'reference_type' => 'payroll_payment', 'reference_id' => $locked->id, 'description' => 'Payroll payment '.$locked->period, 'status' => 'posted', 'created_by' => $request->user()->id, 'posted_at' => now()]);
+            $entry->lines()->createMany([['account_id' => $payable->id, 'debit' => $total, 'credit' => 0, 'memo' => 'Settle payroll payable'], ['account_id' => $data['payment_account_id'], 'debit' => 0, 'credit' => $total, 'memo' => $data['payment_reference']]]);
+            $locked->update(['status' => 'paid', 'payment_account_id' => $data['payment_account_id'], 'payment_journal_entry_id' => $entry->id, 'payment_reference' => $data['payment_reference'], 'paid_by' => $request->user()->id, 'paid_at' => now()]);
+            $locked->payslips()->update(['status' => 'paid']);
+        });
+
+        return back()->with('success', 'Payroll marked paid and posted to the ledger.');
     }
 
     public function payslip(Request $request, Payslip $payslip): View
