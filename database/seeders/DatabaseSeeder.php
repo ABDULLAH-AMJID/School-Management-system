@@ -62,6 +62,7 @@ class DatabaseSeeder extends Seeder
             ['promotions.manage', 'Academics', 'Prepare promotions'], ['promotions.complete', 'Academics', 'Complete promotions'],
             ['access.manage', 'Platform', 'Manage users, roles and permissions'],
             ['results.view', 'Assessment', 'View result cards'], ['results.export', 'Assessment', 'Export tabulation sheets'],
+            ['staff-attendance.manage', 'Attendance', 'Manage staff attendance'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
