@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Student\StudentController;
+use App\Http\Controllers\Timetable\TimetableController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -27,6 +28,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/students/{student}/guardians', [StudentController::class, 'addGuardian'])->middleware('permission:students.update')->name('students.guardians.store');
     Route::post('/students/{student}/withdraw', [StudentController::class, 'withdraw'])->middleware('permission:students.archive')->name('students.withdraw');
     Route::get('/academics', [AcademicController::class, 'index'])->name('academics.index');
+    Route::get('/timetable', [TimetableController::class, 'index'])->middleware('permission:timetable.manage')->name('timetable.index');
+    Route::get('/timetable/create', [TimetableController::class, 'create'])->middleware('permission:timetable.manage')->name('timetable.create');
+    Route::post('/timetable', [TimetableController::class, 'store'])->middleware('permission:timetable.manage')->name('timetable.store');
     Route::get('/assessments', [AssessmentController::class, 'index'])->middleware('permission:exams.manage')->name('assessments.index');
     Route::get('/assessments/{component}/entry', [AssessmentController::class, 'entry'])->middleware('permission:exams.manage')->name('assessments.entry');
     Route::put('/assessments/{component}/marks', [AssessmentController::class, 'store'])->middleware('permission:exams.manage')->name('assessments.marks.store');

@@ -13,12 +13,16 @@ use App\Models\LeaveRequest;
 use App\Models\MessageTemplate;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\Room;
 use App\Models\School;
 use App\Models\Section;
 use App\Models\StaffProfile;
 use App\Models\Student;
 use App\Models\Subject;
+use App\Models\TeachingAssignment;
 use App\Models\Term;
+use App\Models\TimetableEntry;
+use App\Models\TimetablePeriod;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -36,6 +40,7 @@ class DatabaseSeeder extends Seeder
             ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
             ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
             ['hr.manage', 'HR', 'Manage staff'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'],
+            ['timetable.manage', 'Academics', 'Manage timetable'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -62,11 +67,16 @@ class DatabaseSeeder extends Seeder
         });
         $demoSection = $sections[11];
 
+        $room = Room::create(['school_id' => $school->id, 'name' => 'Room 9-A', 'building' => 'Main Block', 'capacity' => 40, 'type' => 'classroom']);
+        $periods = collect([['Period 1', '08:00', '08:45'], ['Period 2', '08:45', '09:30'], ['Period 3', '09:30', '10:15'], ['Break', '10:15', '10:35'], ['Period 4', '10:35', '11:20'], ['Period 5', '11:20', '12:05']])->map(fn ($p, $i) => TimetablePeriod::create(['school_id' => $school->id, 'name' => $p[0], 'starts_at' => $p[1], 'ends_at' => $p[2], 'sequence' => $i + 1, 'is_break' => $p[0] === 'Break']));
+
         $math = Subject::create(['school_id' => $school->id, 'name' => 'Mathematics', 'code' => 'MATH-09', 'type' => 'theory', 'max_marks' => 100]);
         $english = Subject::create(['school_id' => $school->id, 'name' => 'English', 'code' => 'ENG-09', 'type' => 'theory', 'max_marks' => 100]);
         $exam = ExamSession::create(['school_id' => $school->id, 'academic_year_id' => $year->id, 'term_id' => $year->terms()->first()->id, 'name' => 'Mid-Term Examination', 'type' => 'internal', 'starts_on' => '2026-11-16', 'ends_on' => '2026-11-25', 'status' => 'marks_entry']);
         AssessmentComponent::create(['exam_session_id' => $exam->id, 'subject_id' => $math->id, 'grade_level_id' => $demoSection->grade_level_id, 'name' => 'Written Paper', 'max_marks' => 100, 'weight_percent' => 100, 'pass_marks' => 33]);
         AssessmentComponent::create(['exam_session_id' => $exam->id, 'subject_id' => $english->id, 'grade_level_id' => $demoSection->grade_level_id, 'name' => 'Written Paper', 'max_marks' => 100, 'weight_percent' => 100, 'pass_marks' => 33]);
+        $mathAssignment = TeachingAssignment::create(['academic_year_id' => $year->id, 'section_id' => $demoSection->id, 'subject_id' => $math->id, 'teacher_id' => $teacherUser->id, 'class_teacher' => true]);
+        TimetableEntry::create(['academic_year_id' => $year->id, 'weekday' => 1, 'period_id' => $periods[0]->id, 'section_id' => $demoSection->id, 'teaching_assignment_id' => $mathAssignment->id, 'room_id' => $room->id]);
 
         foreach (range(1, 8) as $i) {
             $student = Student::create(['school_id' => $school->id, 'public_id' => (string) Str::ulid(), 'admission_no' => 'GF-26-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT), 'first_name' => ['Ayaan', 'Fatima', 'Muhammad', 'Ayesha', 'Ali', 'Zainab', 'Hamza', 'Hira'][$i - 1], 'last_name' => ['Khan', 'Ahmed', 'Raza', 'Malik', 'Hussain', 'Iqbal', 'Shah', 'Noor'][$i - 1], 'date_of_birth' => now()->subYears(8 + $i), 'gender' => $i % 2 ? 'male' : 'female', 'status' => 'active', 'admitted_on' => now()->subMonths($i)]);
