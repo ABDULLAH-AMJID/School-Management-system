@@ -12,6 +12,7 @@ use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
+use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Reporting\ReportController;
 use App\Http\Controllers\Security\SecurityController;
 use App\Http\Controllers\Student\StudentController;
@@ -52,6 +53,9 @@ Route::middleware(['auth', 'audit'])->group(function () {
     Route::post('/certificates/{certificate}/revoke', [CertificateController::class, 'revoke'])->middleware('permission:certificates.revoke')->name('certificates.revoke');
     Route::get('/security', [SecurityController::class, 'index'])->middleware('permission:security.view')->name('security.index');
     Route::post('/security/backups', [SecurityController::class, 'backup'])->middleware('permission:backups.create')->name('security.backups.create');
+    Route::get('/promotions', [PromotionController::class, 'index'])->middleware('permission:promotions.manage')->name('promotions.index');
+    Route::post('/promotions', [PromotionController::class, 'create'])->middleware('permission:promotions.manage')->name('promotions.create');
+    Route::post('/promotions/{run}/complete', [PromotionController::class, 'complete'])->middleware('permission:promotions.complete')->name('promotions.complete');
     Route::get('/reports', [ReportController::class, 'index'])->middleware('permission:reports.view')->name('reports.index');
     Route::get('/reports/students.csv', [ReportController::class, 'studentsCsv'])->middleware('permission:reports.export')->name('reports.students.csv');
     Route::get('/reports/defaulters.csv', [ReportController::class, 'defaultersCsv'])->middleware('permission:reports.export')->name('reports.defaulters.csv');

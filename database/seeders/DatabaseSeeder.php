@@ -58,6 +58,7 @@ class DatabaseSeeder extends Seeder
             ['reports.view', 'Reporting', 'View reports'], ['reports.export', 'Reporting', 'Export reports'],
             ['security.view', 'Security', 'View audit and security'], ['backups.create', 'Security', 'Create encrypted backups'],
             ['certificates.issue', 'Documents', 'Issue certificates'], ['certificates.revoke', 'Documents', 'Revoke certificates'],
+            ['promotions.manage', 'Academics', 'Prepare promotions'], ['promotions.complete', 'Academics', 'Complete promotions'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -86,6 +87,7 @@ class DatabaseSeeder extends Seeder
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'fee_due', 'name' => 'Fee reminder', 'body' => 'Dear Parent, fee payment for {{student_name}} is due. Outstanding amount: PKR {{amount}}. Please ignore if already paid.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
 
         $year = AcademicYear::create(['school_id' => $school->id, 'name' => '2026–27', 'starts_on' => '2026-04-01', 'ends_on' => '2027-03-31', 'status' => 'active', 'is_current' => true]);
+        AcademicYear::create(['school_id' => $school->id, 'name' => '2027–28', 'starts_on' => '2027-04-01', 'ends_on' => '2028-03-31', 'status' => 'draft', 'is_current' => false]);
         Term::create(['academic_year_id' => $year->id, 'name' => 'Term 1', 'starts_on' => '2026-04-01', 'ends_on' => '2026-08-31', 'sequence' => 1]);
         Term::create(['academic_year_id' => $year->id, 'name' => 'Term 2', 'starts_on' => '2026-09-01', 'ends_on' => '2027-03-31', 'sequence' => 2]);
         $gradeNames = ['Playgroup', 'Nursery', 'Prep', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Intermediate I', 'Intermediate II'];
