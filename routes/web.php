@@ -17,6 +17,7 @@ use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Reporting\ReportController;
 use App\Http\Controllers\Results\ResultController;
 use App\Http\Controllers\Security\SecurityController;
+use App\Http\Controllers\Settings\SchoolSettingsController;
 use App\Http\Controllers\StaffAttendance\StaffAttendanceController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Timetable\TimetableController;
@@ -85,6 +86,8 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/library/books', [LibraryController::class, 'storeBook'])->middleware('permission:library.manage')->name('library.books.store');
     Route::post('/library/loans', [LibraryController::class, 'issue'])->middleware('permission:library.issue')->name('library.loans.issue');
     Route::post('/library/loans/{loan}/return', [LibraryController::class, 'returnBook'])->middleware('permission:library.issue')->name('library.loans.return');
+    Route::get('/settings/school', [SchoolSettingsController::class, 'edit'])->middleware('permission:settings.manage')->name('settings.school.edit');
+    Route::put('/settings/school', [SchoolSettingsController::class, 'update'])->middleware('permission:settings.manage')->name('settings.school.update');
     Route::get('/staff-attendance', [StaffAttendanceController::class, 'index'])->middleware('permission:staff-attendance.manage')->name('staff-attendance.index');
     Route::post('/staff-attendance', [StaffAttendanceController::class, 'store'])->middleware('permission:staff-attendance.manage')->name('staff-attendance.store');
     Route::get('/hr', [HrController::class, 'index'])->middleware('permission:hr.manage')->name('hr.index');
