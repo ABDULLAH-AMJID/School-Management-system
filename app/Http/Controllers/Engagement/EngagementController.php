@@ -8,6 +8,7 @@ use App\Models\Notice;
 use App\Models\SchoolEvent;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\Messaging\TriggerStudentEventMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -31,23 +32,29 @@ final class EngagementController extends Controller
         return back()->with('success', 'Notice published.');
     }
 
-    public function storeComplaint(Request $request): RedirectResponse
+    public function storeComplaint(Request $request, TriggerStudentEventMessage $messenger): RedirectResponse
     {
         $data = $request->validate(['source' => ['required', Rule::in(['parent', 'student', 'staff', 'anonymous'])], 'complainant_name' => ['required', 'string', 'max:120'], 'complainant_phone' => ['nullable', 'string', 'max:30'], 'student_id' => ['nullable', 'exists:students,id'], 'category' => ['required', 'string', 'max:80'], 'priority' => ['required', Rule::in(['low', 'normal', 'high', 'urgent'])], 'subject' => ['required', 'string', 'max:180'], 'description' => ['required', 'string', 'max:5000'], 'assigned_to' => ['nullable', 'exists:users,id']]);
         if ($data['student_id'] ?? null) {
             abort_unless(Student::where(['id' => $data['student_id'], 'school_id' => $request->user()->school_id])->exists(), 403);
-        }Complaint::create($data + ['public_id' => (string) Str::ulid(), 'school_id' => $request->user()->school_id, 'reference_no' => 'CMP-'.now()->format('ymd').'-'.str_pad((string) (Complaint::count() + 1), 4, '0', STR_PAD_LEFT), 'status' => 'open']);
+        }$complaint = Complaint::create($data + ['public_id' => (string) Str::ulid(), 'school_id' => $request->user()->school_id, 'reference_no' => 'CMP-'.now()->format('ymd').'-'.str_pad((string) (Complaint::count() + 1), 4, '0', STR_PAD_LEFT), 'status' => 'open']);
+        if ($complaint->student_id) {
+            $messenger->handle('complaint_registered', 'complaint', $complaint->id, $complaint->student, $request->user(), ['complaint_reference' => $complaint->reference_no, 'complaint_subject' => $complaint->subject], $complaint->complainant_phone);
+        }
 
         return back()->with('success', 'Complaint registered.');
     }
 
-    public function resolve(Request $request, Complaint $complaint): RedirectResponse
+    public function resolve(Request $request, Complaint $complaint, TriggerStudentEventMessage $messenger): RedirectResponse
     {
         abort_unless($complaint->school_id === $request->user()->school_id, 403);
         abort_unless(! in_array($complaint->status, ['resolved', 'closed'], true), 409);
         $data = $request->validate(['resolution' => ['required', 'string', 'max:5000']]);
         $complaint->update(['status' => 'resolved', 'resolution' => $data['resolution'], 'resolved_at' => now(), 'resolved_by' => $request->user()->id]);
+        if ($complaint->student_id) {
+            $messenger->handle('complaint_resolved', 'complaint', $complaint->id, $complaint->student, $request->user(), ['complaint_reference' => $complaint->reference_no, 'resolution' => $data['resolution']], $complaint->complainant_phone);
+        }
 
-        return back()->with('success','Complaint resolved.');
+        return back()->with('success', 'Complaint resolved.');
     }
 }
