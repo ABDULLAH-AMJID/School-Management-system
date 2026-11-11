@@ -21,6 +21,18 @@ class WhatsAppConnectorTest extends TestCase
         Http::assertSent(fn ($r) => $r->hasHeader('Authorization', 'Bearer secret'));
     }
 
+    public function test_connector_panel_uses_safe_qr_dom_rendering(): void
+    {
+        $this->seed();
+        $user = User::where('email', 'principal@school.test')->firstOrFail();
+
+        $this->actingAs($user)->get(route('communication.index'))
+            ->assertOk()
+            ->assertSee("startsWith('data:image/png;base64,')", false)
+            ->assertSee('replaceChildren(img)', false)
+            ->assertDontSee('wa-qr\').innerHTML', false);
+    }
+
     public function test_connector_unavailable_is_reported_without_false_connected_state(): void
     {
         $this->seed();

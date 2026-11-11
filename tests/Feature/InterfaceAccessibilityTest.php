@@ -19,6 +19,8 @@ class InterfaceAccessibilityTest extends TestCase
         $this->assertStringNotContainsString('fonts.googleapis.com', $html);
         $this->assertStringContainsString('prefers-reduced-motion', $html);
         $this->assertStringContainsString('@media print', $html);
+        $this->assertStringContainsString('window.erpEscape', $html);
+        $this->assertStringContainsString('erpEscape(x.title)', $html);
     }
 
     public function test_mobile_navigation_is_permission_aware_for_teacher(): void
