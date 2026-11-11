@@ -9,11 +9,13 @@ use App\Models\Enrollment;
 use App\Models\ExamSession;
 use App\Models\FeeInvoice;
 use App\Models\GradeLevel;
+use App\Models\LeaveRequest;
 use App\Models\MessageTemplate;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\Section;
+use App\Models\StaffProfile;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Term;
@@ -33,11 +35,15 @@ class DatabaseSeeder extends Seeder
             ['settings.manage', 'Platform', 'Manage settings'],
             ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
             ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
+            ['hr.manage', 'HR', 'Manage staff'], ['hr.approve', 'HR', 'Approve leave'], ['payroll.manage', 'Payroll', 'Generate payroll'], ['payroll.approve', 'Payroll', 'Approve payroll'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
         $user = User::create(['school_id' => $school->id, 'public_id' => (string) Str::ulid(), 'name' => 'Abdullah Amjid', 'email' => 'principal@school.test', 'phone' => '+923001234567', 'status' => 'active', 'password' => 'password']);
         $user->roles()->attach($principal);
+        $teacherUser = User::create(['school_id' => $school->id, 'public_id' => (string) Str::ulid(), 'name' => 'Sarah Ahmed', 'email' => 'teacher@school.test', 'phone' => '+923111234567', 'status' => 'active', 'password' => 'password']);
+        $staff = StaffProfile::create(['school_id' => $school->id, 'user_id' => $teacherUser->id, 'employee_no' => 'EMP-0001', 'designation' => 'Senior Teacher', 'department' => 'Academics', 'joined_on' => '2023-08-01', 'employment_type' => 'permanent', 'basic_salary' => 8500000, 'status' => 'active']);
+        LeaveRequest::create(['staff_profile_id' => $staff->id, 'type' => 'casual', 'starts_on' => today()->addDays(3), 'ends_on' => today()->addDays(4), 'days' => 2, 'reason' => 'Family commitment', 'status' => 'pending']);
         foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense']] as $account) {
             Account::create(['school_id' => $school->id, 'code' => $account[0], 'name' => $account[1], 'type' => $account[2]]);
         }
