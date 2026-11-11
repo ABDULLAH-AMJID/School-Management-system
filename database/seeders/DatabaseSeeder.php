@@ -55,6 +55,7 @@ class DatabaseSeeder extends Seeder
             ['inventory.manage', 'Inventory', 'Manage stock and assets'], ['inventory.issue', 'Inventory', 'Issue and receive stock'],
             ['engagement.manage', 'Engagement', 'Manage notices and events'], ['complaints.manage', 'Engagement', 'Register complaints'], ['complaints.resolve', 'Engagement', 'Resolve complaints'],
             ['reports.view', 'Reporting', 'View reports'], ['reports.export', 'Reporting', 'Export reports'],
+            ['security.view', 'Security', 'View audit and security'], ['backups.create', 'Security', 'Create encrypted backups'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));

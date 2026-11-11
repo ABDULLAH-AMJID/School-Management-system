@@ -12,6 +12,7 @@ use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Library\LibraryController;
 use App\Http\Controllers\Reporting\ReportController;
+use App\Http\Controllers\Security\SecurityController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Timetable\TimetableController;
 use App\Http\Controllers\Transport\TransportController;
@@ -21,7 +22,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,1');
 });
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'audit'])->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/students', [StudentController::class, 'index'])->middleware('permission:students.view')->name('students.index');
@@ -42,6 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
+    Route::get('/security', [SecurityController::class, 'index'])->middleware('permission:security.view')->name('security.index');
+    Route::post('/security/backups', [SecurityController::class, 'backup'])->middleware('permission:backups.create')->name('security.backups.create');
     Route::get('/reports', [ReportController::class, 'index'])->middleware('permission:reports.view')->name('reports.index');
     Route::get('/reports/students.csv', [ReportController::class, 'studentsCsv'])->middleware('permission:reports.export')->name('reports.students.csv');
     Route::get('/reports/defaulters.csv', [ReportController::class, 'defaultersCsv'])->middleware('permission:reports.export')->name('reports.defaulters.csv');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuditMutations;
 use App\Http\Middleware\EnsurePermission;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['permission' => EnsurePermission::class]);
+        $middleware->alias([
+            'permission' => EnsurePermission::class,
+            'audit' => AuditMutations::class,
+        ]);
         $middleware->redirectGuestsTo('/login');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
