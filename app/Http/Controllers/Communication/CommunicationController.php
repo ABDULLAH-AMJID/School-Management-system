@@ -9,6 +9,8 @@ use App\Models\MessageTemplate;
 use App\Models\OutboundMessage;
 use App\Models\Student;
 use App\Services\Messaging\QueueMessage;
+use App\Services\Messaging\WhatsAppWebProvider;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,6 +33,22 @@ final class CommunicationController extends Controller
         $message = $service->create($template, $student, $data['recipient'], $request->user(), [], $data['scheduled_for'] ?? null);
 
         return back()->with('success', $message->status === 'approved' ? 'Message queued for delivery.' : 'Message created and awaits approval.');
+    }
+
+    public function connector(WhatsAppWebProvider $provider): JsonResponse
+    {
+        try {
+            return response()->json(['health' => $provider->health(), 'qr' => $provider->qr()]);
+        } catch (\Throwable $e) {
+            return response()->json(['health' => ['connected' => false, 'state' => 'unavailable'], 'error' => $e->getMessage()], 503);
+        }
+    }
+
+    public function connectorLogout(WhatsAppWebProvider $provider): RedirectResponse
+    {
+        $provider->logout();
+
+        return back()->with('success', 'WhatsApp device was logged out.');
     }
 
     public function preference(Request $request): RedirectResponse

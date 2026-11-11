@@ -117,6 +117,8 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/finance/expenses/{voucher}/reject', [FinanceController::class, 'rejectExpense'])->middleware('permission:expenses.approve')->name('finance.expenses.reject');
     Route::get('/communication', [CommunicationController::class, 'index'])->middleware('permission:messages.manage')->name('communication.index');
     Route::post('/communication', [CommunicationController::class, 'store'])->middleware('permission:messages.manage')->name('communication.store');
+    Route::get('/communication/connector', [CommunicationController::class, 'connector'])->middleware('permission:messages.manage')->name('communication.connector');
+    Route::post('/communication/connector/logout', [CommunicationController::class, 'connectorLogout'])->middleware('permission:messages.manage')->name('communication.connector.logout');
     Route::post('/communication/preferences', [CommunicationController::class, 'preference'])->middleware('permission:messages.manage')->name('communication.preferences.store');
     Route::post('/communication/templates', [CommunicationController::class, 'storeTemplate'])->middleware('permission:messages.manage')->name('communication.templates.store');
     Route::put('/communication/templates/{template}', [CommunicationController::class, 'updateTemplate'])->middleware('permission:messages.manage')->name('communication.templates.update');
