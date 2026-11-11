@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Academic\AcademicController;
 use App\Http\Controllers\Administration\AccessController;
+use App\Http\Controllers\Approvals\ApprovalInboxController;
 use App\Http\Controllers\Assessment\AssessmentController;
 use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -95,6 +96,7 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/library/books', [LibraryController::class, 'storeBook'])->middleware('permission:library.manage')->name('library.books.store');
     Route::post('/library/loans', [LibraryController::class, 'issue'])->middleware('permission:library.issue')->name('library.loans.issue');
     Route::post('/library/loans/{loan}/return', [LibraryController::class, 'returnBook'])->middleware('permission:library.issue')->name('library.loans.return');
+    Route::get('/approvals', ApprovalInboxController::class)->name('approvals.index');
     Route::get('/search', GlobalSearchController::class)->name('search');
     Route::get('/settings/school', [SchoolSettingsController::class, 'edit'])->middleware('permission:settings.manage')->name('settings.school.edit');
     Route::put('/settings/school', [SchoolSettingsController::class, 'update'])->middleware('permission:settings.manage')->name('settings.school.update');
