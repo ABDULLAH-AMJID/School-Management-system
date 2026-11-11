@@ -4,6 +4,7 @@ use App\Http\Controllers\Academic\AcademicController;
 use App\Http\Controllers\Assessment\AssessmentController;
 use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Certificate\CertificateController;
 use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Engagement\EngagementController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Timetable\TimetableController;
 use App\Http\Controllers\Transport\TransportController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/verify-certificate/{code}', [CertificateController::class, 'verify'])->name('certificates.verify');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -43,6 +46,10 @@ Route::middleware(['auth', 'audit'])->group(function () {
     Route::post('/exams/{exam}/publish', [AssessmentController::class, 'publish'])->middleware('permission:exams.publish')->name('exams.publish');
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
+    Route::get('/certificates', [CertificateController::class, 'index'])->middleware('permission:certificates.issue')->name('certificates.index');
+    Route::post('/certificates', [CertificateController::class, 'issue'])->middleware('permission:certificates.issue')->name('certificates.issue');
+    Route::get('/certificates/{certificate}', [CertificateController::class, 'show'])->middleware('permission:certificates.issue')->name('certificates.show');
+    Route::post('/certificates/{certificate}/revoke', [CertificateController::class, 'revoke'])->middleware('permission:certificates.revoke')->name('certificates.revoke');
     Route::get('/security', [SecurityController::class, 'index'])->middleware('permission:security.view')->name('security.index');
     Route::post('/security/backups', [SecurityController::class, 'backup'])->middleware('permission:backups.create')->name('security.backups.create');
     Route::get('/reports', [ReportController::class, 'index'])->middleware('permission:reports.view')->name('reports.index');

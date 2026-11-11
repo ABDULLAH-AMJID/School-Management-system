@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\AcademicYear;
 use App\Models\Account;
 use App\Models\AssessmentComponent;
+use App\Models\CertificateTemplate;
 use App\Models\Enrollment;
 use App\Models\ExamSession;
 use App\Models\FeeInvoice;
@@ -56,6 +57,7 @@ class DatabaseSeeder extends Seeder
             ['engagement.manage', 'Engagement', 'Manage notices and events'], ['complaints.manage', 'Engagement', 'Register complaints'], ['complaints.resolve', 'Engagement', 'Resolve complaints'],
             ['reports.view', 'Reporting', 'View reports'], ['reports.export', 'Reporting', 'Export reports'],
             ['security.view', 'Security', 'View audit and security'], ['backups.create', 'Security', 'Create encrypted backups'],
+            ['certificates.issue', 'Documents', 'Issue certificates'], ['certificates.revoke', 'Documents', 'Revoke certificates'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -76,6 +78,9 @@ class DatabaseSeeder extends Seeder
 
         Notice::create(['school_id' => $school->id, 'title' => 'Mid-Term Examination Schedule', 'body' => 'The mid-term examinations will begin on 16 November. Students should follow the published timetable.', 'audience' => 'all', 'starts_on' => today(), 'ends_on' => today()->addDays(14), 'pinned' => true, 'status' => 'published', 'created_by' => $user->id]);
         SchoolEvent::create(['school_id' => $school->id, 'title' => 'Parent–Teacher Meeting', 'description' => 'Mid-term progress discussion.', 'starts_at' => today()->addDays(10)->setTime(9, 0), 'ends_at' => today()->addDays(10)->setTime(13, 0), 'type' => 'meeting', 'audience' => 'parents', 'location' => 'Main Campus', 'created_by' => $user->id]);
+
+        CertificateTemplate::create(['school_id' => $school->id, 'name' => 'Bonafide Student Certificate', 'type' => 'bonafide', 'title' => 'BONAFIDE CERTIFICATE', 'body' => 'This is to certify that {{student_name}}, admission number {{admission_no}}, is a bonafide student of {{school_name}}. This certificate is issued on {{date}} upon request.', 'active' => true]);
+        CertificateTemplate::create(['school_id' => $school->id, 'name' => 'Character Certificate', 'type' => 'character', 'title' => 'CHARACTER CERTIFICATE', 'body' => 'This is to certify that {{student_name}} studied at {{school_name}} under admission number {{admission_no}}. During this period, the student maintained good conduct and character.', 'active' => true]);
 
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'absence', 'name' => 'Student absence', 'body' => 'Dear Parent, {{student_name}} ({{admission_no}}) was marked absent today. Please contact the school if needed.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
         MessageTemplate::create(['school_id' => $school->id, 'event' => 'fee_due', 'name' => 'Fee reminder', 'body' => 'Dear Parent, fee payment for {{student_name}} is due. Outstanding amount: PKR {{amount}}. Please ignore if already paid.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
