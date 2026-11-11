@@ -48,6 +48,7 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::get('/academics', [AcademicController::class, 'index'])->name('academics.index');
     Route::get('/timetable', [TimetableController::class, 'index'])->middleware('permission:timetable.manage')->name('timetable.index');
     Route::get('/timetable/create', [TimetableController::class, 'create'])->middleware('permission:timetable.manage')->name('timetable.create');
+    Route::post('/timetable/sections/{section}/publish', [TimetableController::class, 'publish'])->middleware('permission:timetable.manage')->name('timetable.publish');
     Route::post('/timetable', [TimetableController::class, 'store'])->middleware('permission:timetable.manage')->name('timetable.store');
     Route::get('/results', [ResultController::class, 'index'])->middleware('permission:results.view')->name('results.index');
     Route::get('/results/{exam}/tabulation.csv', [ResultController::class, 'tabulationCsv'])->middleware('permission:results.export')->name('results.tabulation.csv');
