@@ -29,4 +29,9 @@ class FeeInvoice extends Model
     {
         return $this->total - $this->paid;
     }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(FeeInvoiceItem::class);
+    }
 }

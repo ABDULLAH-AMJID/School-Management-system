@@ -9,6 +9,7 @@ use App\Http\Controllers\Certificate\CertificateController;
 use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Engagement\EngagementController;
+use App\Http\Controllers\Fee\FeeSetupController;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Hr\HrController;
 use App\Http\Controllers\Inventory\InventoryController;
@@ -97,6 +98,9 @@ Route::middleware(['auth', 'active', 'audit'])->group(function () {
     Route::post('/hr/leaves/{leave}/review', [HrController::class, 'reviewLeave'])->middleware('permission:hr.approve')->name('hr.leaves.review');
     Route::post('/hr/payroll', [HrController::class, 'generatePayroll'])->middleware('permission:payroll.manage')->name('hr.payroll.generate');
     Route::post('/hr/payroll/{run}/approve', [HrController::class, 'approvePayroll'])->middleware('permission:payroll.approve')->name('hr.payroll.approve');
+    Route::get('/finance/fee-setup', [FeeSetupController::class, 'index'])->middleware('permission:fees.configure')->name('fee-setup.index');
+    Route::post('/finance/fee-setup', [FeeSetupController::class, 'store'])->middleware('permission:fees.configure')->name('fee-setup.store');
+    Route::post('/finance/fee-installments/{installment}/generate', [FeeSetupController::class, 'generate'])->middleware('permission:fees.generate')->name('fee-setup.generate');
     Route::get('/finance/reconciliation', [BankReconciliationController::class, 'index'])->middleware('permission:reconciliation.manage')->name('reconciliation.index');
     Route::post('/finance/reconciliation', [BankReconciliationController::class, 'store'])->middleware('permission:reconciliation.manage')->name('reconciliation.store');
     Route::post('/finance/reconciliation/{run}/complete', [BankReconciliationController::class, 'complete'])->middleware('permission:reconciliation.complete')->name('reconciliation.complete');
