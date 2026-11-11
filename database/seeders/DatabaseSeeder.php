@@ -9,6 +9,7 @@ use App\Models\Enrollment;
 use App\Models\ExamSession;
 use App\Models\FeeInvoice;
 use App\Models\GradeLevel;
+use App\Models\MessageTemplate;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\School;
@@ -31,6 +32,7 @@ class DatabaseSeeder extends Seeder
             ['attendance.manage', 'Attendance', 'Manage attendance'], ['finance.manage', 'Finance', 'Manage finance'],
             ['settings.manage', 'Platform', 'Manage settings'],
             ['exams.manage', 'Assessment', 'Manage examinations'], ['exams.publish', 'Assessment', 'Publish results'],
+            ['messages.manage', 'Communication', 'Manage messages'], ['messages.approve', 'Communication', 'Approve messages'],
         ])->map(fn ($p) => Permission::create(['name' => $p[0], 'module' => $p[1], 'label' => $p[2]]));
         $principal = Role::create(['name' => 'principal', 'label' => 'Principal', 'system' => true]);
         $principal->permissions()->sync($permissions->pluck('id'));
@@ -39,6 +41,9 @@ class DatabaseSeeder extends Seeder
         foreach ([['1000', 'Cash on Hand', 'asset'], ['1010', 'Bank Account', 'asset'], ['1100', 'Student Fee Receivable', 'asset'], ['4000', 'Tuition Fee Income', 'income'], ['5000', 'Salary Expense', 'expense']] as $account) {
             Account::create(['school_id' => $school->id, 'code' => $account[0], 'name' => $account[1], 'type' => $account[2]]);
         }
+
+        MessageTemplate::create(['school_id' => $school->id, 'event' => 'absence', 'name' => 'Student absence', 'body' => 'Dear Parent, {{student_name}} ({{admission_no}}) was marked absent today. Please contact the school if needed.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
+        MessageTemplate::create(['school_id' => $school->id, 'event' => 'fee_due', 'name' => 'Fee reminder', 'body' => 'Dear Parent, fee payment for {{student_name}} is due. Outstanding amount: PKR {{amount}}. Please ignore if already paid.', 'mode' => 'approval', 'quiet_from' => '20:00', 'quiet_until' => '07:00', 'active' => true]);
 
         $year = AcademicYear::create(['school_id' => $school->id, 'name' => '2026–27', 'starts_on' => '2026-04-01', 'ends_on' => '2027-03-31', 'status' => 'active', 'is_current' => true]);
         Term::create(['academic_year_id' => $year->id, 'name' => 'Term 1', 'starts_on' => '2026-04-01', 'ends_on' => '2026-08-31', 'sequence' => 1]);

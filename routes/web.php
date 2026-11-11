@@ -4,6 +4,7 @@ use App\Http\Controllers\Academic\AcademicController;
 use App\Http\Controllers\Assessment\AssessmentController;
 use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Student\StudentController;
@@ -28,5 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage')->name('attendance.store');
     Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.manage')->name('finance.index');
     Route::post('/finance/invoices/{invoice}/collect', [FinanceController::class, 'collect'])->middleware('permission:finance.manage')->name('finance.collect');
-    Route::view('/communication', 'modules.coming-soon', ['title' => 'WhatsApp Centre'])->name('communication.index');
+    Route::get('/communication', [CommunicationController::class, 'index'])->middleware('permission:messages.manage')->name('communication.index');
+    Route::post('/communication', [CommunicationController::class, 'store'])->middleware('permission:messages.manage')->name('communication.store');
+    Route::post('/communication/{message}/approve', [CommunicationController::class, 'approve'])->middleware('permission:messages.approve')->name('communication.approve');
+    Route::post('/communication/{message}/cancel', [CommunicationController::class, 'cancel'])->middleware('permission:messages.manage')->name('communication.cancel');
 });
