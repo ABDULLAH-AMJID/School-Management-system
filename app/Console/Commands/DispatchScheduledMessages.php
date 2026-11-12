@@ -20,9 +20,14 @@ class DispatchScheduledMessages extends Command
             $template = $message->template;
             if ($template && $this->insideQuietHours($now->format('H:i:s'), $template->quiet_from, $template->quiet_until)) {
                 return;
-            }$message->update(['status' => 'queued']);
-            SendOutboundMessage::dispatch($message->id);
-            $queued++;
+            }
+            $claimed = OutboundMessage::whereKey($message->id)
+                ->whereIn('status', ['approved', 'failed'])
+                ->update(['status' => 'queued']);
+            if ($claimed === 1) {
+                SendOutboundMessage::dispatch($message->id);
+                $queued++;
+            }
         });
         $this->info("Queued {$queued} message(s) for delivery.");
 

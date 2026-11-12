@@ -20,10 +20,13 @@ class SendOutboundMessage implements ShouldQueue
 
     public function handle(): void
     {
-        $message = OutboundMessage::findOrFail($this->messageId);
-        if (! in_array($message->status, ['approved', 'queued'], true)) {
+        $claimed = OutboundMessage::whereKey($this->messageId)
+            ->whereIn('status', ['approved', 'queued'])
+            ->update(['status' => 'sending']);
+        if ($claimed !== 1) {
             return;
-        }$message->update(['status' => 'sending']);
+        }
+        $message = OutboundMessage::findOrFail($this->messageId);
         try {
             $provider = app(MessagingProvider::class);
             $providerId = $provider->send($message);

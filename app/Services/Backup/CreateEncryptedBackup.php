@@ -14,6 +14,14 @@ final class CreateEncryptedBackup
 {
     public function run(?School $school = null): BackupRecord
     {
+        BackupRecord::where('status', 'running')
+            ->where('started_at', '<', now()->subHour())
+            ->update([
+                'status' => 'failed',
+                'error' => 'Backup process did not complete within one hour.',
+                'completed_at' => now(),
+            ]);
+
         $record = BackupRecord::create(['school_id' => $school?->id, 'filename' => 'pending', 'disk' => 'local', 'checksum' => str_repeat('0', 64), 'status' => 'running', 'started_at' => now()]);
 
         try {

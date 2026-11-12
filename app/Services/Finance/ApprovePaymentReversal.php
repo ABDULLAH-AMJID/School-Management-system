@@ -27,7 +27,12 @@ final class ApprovePaymentReversal
             foreach ($original->lines as $line) {
                 $entry->lines()->create(['account_id' => $line->account_id, 'debit' => $line->credit, 'credit' => $line->debit, 'memo' => 'Reversal: '.$line->memo]);
             }$invoice->decrement('paid', $r->amount);
-            $invoice->refresh()->update(['status' => $invoice->paid <= 0 ? 'issued' : 'partially_paid']);
+            $invoice->refresh();
+            $invoiceStatus = $invoice->paid <= 0 ? 'issued' : 'partially_paid';
+            if ($invoice->paid < $invoice->total && $invoice->due_date->isPast()) {
+                $invoiceStatus = 'overdue';
+            }
+            $invoice->update(['status' => $invoiceStatus]);
             $payment->update(['status' => 'reversed']);
             $r->update(['status' => 'approved', 'approved_by' => $approver->id, 'approved_at' => now(), 'journal_entry_id' => $entry->id]);
 
