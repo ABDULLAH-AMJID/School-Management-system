@@ -19,7 +19,7 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, pdo_sqlite, openssl
           coverage: none
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: vendor
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
