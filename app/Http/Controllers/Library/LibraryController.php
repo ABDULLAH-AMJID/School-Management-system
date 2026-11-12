@@ -53,11 +53,14 @@ final class LibraryController extends Controller
     public function returnBook(Request $request, LibraryLoan $loan): RedirectResponse
     {
         abort_unless($loan->school_id === $request->user()->school_id, 403);
-        abort_unless($loan->status === 'issued', 409);
         DB::transaction(function () use ($loan, $request) {
-            $days = max(0, $loan->due_on->diffInDays(today(), false));
-            $loan->update(['returned_on' => today(), 'fine_amount' => $days * 5000, 'status' => 'returned', 'returned_by' => $request->user()->id]);
-            $loan->copy()->update(['status' => 'available']);
+            $lockedLoan = LibraryLoan::lockForUpdate()->findOrFail($loan->id);
+            abort_unless($lockedLoan->status === 'issued', 409);
+            $copy = LibraryCopy::lockForUpdate()->findOrFail($lockedLoan->library_copy_id);
+            abort_unless($copy->status === 'issued', 409);
+            $days = max(0, $lockedLoan->due_on->diffInDays(today(), false));
+            $lockedLoan->update(['returned_on' => today(), 'fine_amount' => $days * 5000, 'status' => 'returned', 'returned_by' => $request->user()->id]);
+            $copy->update(['status' => 'available']);
         });
 
         return back()->with('success', 'Book returned. Fine: PKR '.number_format($loan->fresh()->fine_amount / 100));

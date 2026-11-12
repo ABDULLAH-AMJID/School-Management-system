@@ -48,10 +48,20 @@ final class AssessmentController extends Controller
     public function publish(Request $request, ExamSession $exam): RedirectResponse
     {
         abort_unless($exam->school_id === $request->user()->school_id, 403);
-        $missing = AssessmentComponent::where('exam_session_id', $exam->id)->whereDoesntHave('marks')->exists();
-        if ($missing) {
+        $published = DB::transaction(function () use ($exam, $request) {
+            $locked = ExamSession::lockForUpdate()->findOrFail($exam->id);
+            abort_if($locked->status === 'published', 409);
+            $missing = AssessmentComponent::where('exam_session_id', $locked->id)->whereDoesntHave('marks')->exists();
+            if ($missing) {
+                return false;
+            }
+            $locked->update(['status' => 'published', 'published_at' => now(), 'published_by' => $request->user()->id]);
+
+            return true;
+        });
+        if (! $published) {
             return back()->withErrors(['publish' => 'Every assessment component must contain marks before publishing.']);
-        }$exam->update(['status' => 'published', 'published_at' => now(), 'published_by' => $request->user()->id]);
+        }
         GenerateResultNotifications::dispatch($exam->id, $request->user()->id);
 
         return back()->with('success', 'Results published successfully.');

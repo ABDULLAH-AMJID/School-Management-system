@@ -42,10 +42,13 @@ final class PromotionController extends Controller
         abort_unless($run->school_id === $request->user()->school_id && $run->status === 'draft', 403);
         $data = $request->validate(['decision' => ['required', 'array'], 'decision.*' => [Rule::in(['promote', 'repeat', 'graduate'])]]);
         DB::transaction(function () use ($run, $data, $request) {
-            foreach ($run->decisions()->get() as $decision) {
+            $run = PromotionRun::lockForUpdate()->findOrFail($run->id);
+            abort_unless($run->status === 'draft', 409);
+            foreach ($run->decisions()->lockForUpdate()->get() as $decision) {
                 $choice = $data['decision'][$decision->id] ?? $decision->decision;
                 $decision->update(['decision' => $choice]);
-                $old = Enrollment::where(['student_id' => $decision->student_id, 'academic_year_id' => $run->from_academic_year_id])->firstOrFail();
+                $old = Enrollment::where(['student_id' => $decision->student_id, 'academic_year_id' => $run->from_academic_year_id])->lockForUpdate()->firstOrFail();
+                abort_unless($old->status === 'active', 409);
                 $old->update(['status' => $choice === 'graduate' ? 'graduated' : 'completed']);
                 if ($choice !== 'graduate') {
                     Enrollment::updateOrCreate(['student_id' => $decision->student_id, 'academic_year_id' => $run->to_academic_year_id], ['section_id' => $choice === 'repeat' ? $run->from_section_id : $run->to_section_id, 'roll_no' => $decision->new_roll_no, 'status' => 'active']);

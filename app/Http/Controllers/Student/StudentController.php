@@ -97,8 +97,10 @@ final class StudentController extends Controller
         $this->authorizeSchool($request, $student);
         $data = $request->validate(['withdrawn_on' => ['required', 'date', 'after_or_equal:'.$student->admitted_on->toDateString(), 'before_or_equal:today'], 'withdrawal_reason' => ['required', 'string', 'max:500']]);
         DB::transaction(function () use ($student, $data) {
-            $student->update($data + ['status' => 'withdrawn']);
-            Enrollment::where('student_id', $student->id)->where('status', 'active')->update(['status' => 'withdrawn']);
+            $locked = Student::lockForUpdate()->findOrFail($student->id);
+            abort_unless($locked->status === 'active', 409);
+            $locked->update($data + ['status' => 'withdrawn']);
+            Enrollment::where('student_id', $locked->id)->where('status', 'active')->update(['status' => 'withdrawn']);
         });
 
         return redirect()->route('students.show', $student)->with('success', 'Student withdrawn and active enrollment closed.');

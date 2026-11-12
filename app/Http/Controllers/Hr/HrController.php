@@ -41,8 +41,9 @@ final class HrController extends Controller
     {
         abort_unless($leave->staffProfile()->where('school_id', $request->user()->school_id)->exists(), 403);
         $data = $request->validate(['decision' => ['required', 'in:approved,rejected'], 'review_note' => ['nullable', 'string', 'max:500']]);
-        abort_unless($leave->status === 'pending', 409);
-        $leave->update(['status' => $data['decision'], 'reviewed_by' => $request->user()->id, 'reviewed_at' => now(), 'review_note' => $data['review_note'] ?? null]);
+        $updated = LeaveRequest::whereKey($leave->id)->where('status', 'pending')->update(['status' => $data['decision'], 'reviewed_by' => $request->user()->id, 'reviewed_at' => now(), 'review_note' => $data['review_note'] ?? null]);
+        abort_unless($updated === 1, 409);
+        $leave->refresh();
         $leave->load('staffProfile.user');
         $staffUser = $leave->staffProfile->user;
         if ($staffUser?->phone) {
@@ -100,6 +101,8 @@ final class HrController extends Controller
         abort_unless($run->school_id === $request->user()->school_id, 403);
         abort_unless($run->status === 'draft' && $run->payslips()->exists(), 409);
         DB::transaction(function () use ($run, $request) {
+            $run = PayrollRun::lockForUpdate()->findOrFail($run->id);
+            abort_unless($run->status === 'draft' && $run->payslips()->exists(), 409);
             $total = $run->payslips()->sum('net_salary');
             $expense = Account::where(['school_id' => $run->school_id, 'code' => '5000'])->firstOrFail();
             $payable = Account::where(['school_id' => $run->school_id, 'code' => '2100'])->firstOrFail();
