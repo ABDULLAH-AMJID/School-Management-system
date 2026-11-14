@@ -30,6 +30,7 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         showSetup();
+        new AppUpdater(this).check(false);
     }
 
     private boolean onWifi() {
@@ -83,7 +84,9 @@ public final class MainActivity extends Activity {
             getPreferences(MODE_PRIVATE).edit().putString("server", base).apply();
             openPortal(base);
         });
-        root.addView(title); root.addView(info); root.addView(input); root.addView(connect);
+        Button update = new Button(this); update.setText("Check for app updates");
+        update.setOnClickListener(v -> new AppUpdater(this).check(true));
+        root.addView(title); root.addView(info); root.addView(input); root.addView(connect); root.addView(update);
         setContentView(root);
     }
 
@@ -97,6 +100,9 @@ public final class MainActivity extends Activity {
         Button settings = new Button(this); settings.setText("Change school server");
         settings.setOnClickListener(v -> { web.stopLoading(); web.destroy(); web = null; showSetup(); });
         root.addView(settings);
+        Button update = new Button(this); update.setText("Check for app updates");
+        update.setOnClickListener(v -> new AppUpdater(this).check(true));
+        root.addView(update);
         web = new WebView(this);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true);
