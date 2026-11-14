@@ -31,3 +31,10 @@ Thumbs.db
 /storage/app/private/backups/
 /whatsapp-connector/session/
 /whatsapp-connector/.env
+
+# Android local build and signing secrets
+/android-staff/.gradle/
+/android-staff/local.properties
+/android-staff/**/build/
+/android-staff/*.jks
+/android-staff/*.keystore

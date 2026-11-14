@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Only opt in when Caddy runs on the same host and the backend is loopback-only.
+        if (env('TRUST_LOCAL_HTTPS_PROXY', false)) {
+            $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+        }
+
         $middleware->alias([
             'permission' => EnsurePermission::class,
             'audit' => AuditMutations::class,

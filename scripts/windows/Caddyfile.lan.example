@@ -1,0 +1,6 @@
+# Copy outside the repository, substitute the fixed private IPv4 address.
+# Run only on a trusted school LAN. Do not port-forward this listener.
+https://192.168.1.10:8443 {
+    tls internal
+    reverse_proxy 127.0.0.1:8000
+}
