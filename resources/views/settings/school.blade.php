@@ -3,7 +3,7 @@
 <div class="heading"><div><div class="eyebrow">Institution configuration</div><h1>School settings</h1></div></div>
 @if(session('success'))<div style="padding:14px;background:#e8f8ee;color:#237a46;border-radius:11px;margin-bottom:16px">{{session('success')}}</div>@endif
 @if($errors->any())<div style="padding:14px;background:#fff0f0;color:#a33;border-radius:11px;margin-bottom:16px">{{$errors->first()}}</div>@endif
-<form method="post" action="{{route('settings.school.update')}}" class="card panel">
+<form method="post" enctype="multipart/form-data" action="{{route('settings.school.update')}}" class="card panel">
 @csrf @method('put')
 <div class="panel-title"><h3>Institution identity</h3><span class="badge">Single school</span></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
@@ -12,6 +12,10 @@
 @endforeach
 <label style="grid-column:1/-1"><div class="eyebrow">Address</div><textarea name="address" style="width:100%;padding:11px;border:1px solid #dfe3ec;border-radius:9px">{{old('address',$school->address)}}</textarea></label>
 </div>
+<div class="panel-title" style="margin-top:28px"><h3>School logo</h3></div>
+@if(data_get($school->settings, 'logo_path'))<img src="{{route('school.logo')}}?v={{$school->updated_at?->timestamp}}" alt="Current school logo" style="width:96px;height:96px;object-fit:contain;border-radius:12px">@endif
+<label style="display:block;margin-top:12px">Upload logo (PNG, JPG or WebP; max 2 MB)<input type="file" name="logo" accept="image/png,image/jpeg,image/webp" style="display:block;margin-top:8px"></label>
+@if(data_get($school->settings, 'logo_path'))<label><input type="checkbox" name="remove_logo" value="1"> Remove existing logo</label>@endif
 <div class="panel-title" style="margin-top:28px"><h3>Operational defaults</h3></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px">
 <label><div class="eyebrow">Timezone</div><select name="timezone" style="width:100%;padding:11px"><option value="Asia/Karachi">Asia/Karachi</option></select></label>

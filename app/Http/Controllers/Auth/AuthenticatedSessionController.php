@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\School;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,7 @@ final class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
-        return view('auth.login');
+        return view('auth.login', ['school' => School::query()->orderBy('id')->first()]);
     }
 
     public function store(Request $request): RedirectResponse

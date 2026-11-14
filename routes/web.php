@@ -32,6 +32,7 @@ use App\Http\Controllers\Timetable\TimetableController;
 use App\Http\Controllers\Transport\TransportController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/school-logo', \App\Http\Controllers\Settings\SchoolLogoController::class)->name('school.logo');
 Route::get('/verify-certificate/{code}', [CertificateController::class, 'verify'])->name('certificates.verify');
 
 Route::middleware('guest')->group(function () {

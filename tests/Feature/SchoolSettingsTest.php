@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SchoolSettingsTest extends TestCase
@@ -27,4 +29,30 @@ class SchoolSettingsTest extends TestCase
         $user = User::where('email', 'principal@school.test')->firstOrFail();
         $this->actingAs($user)->put(route('settings.school.update'), ['name' => 'School', 'code' => 'SCH', 'board' => 'Punjab', 'phone' => '03001234567', 'timezone' => 'Mars/Base', 'currency' => 'PKR', 'attendance_start_time' => '08:00', 'late_after_minutes' => 0, 'receipt_prefix' => 'RCP', 'voucher_prefix' => 'EV'])->assertSessionHasErrors(['phone', 'timezone']);
     }
+    public function test_school_logo_appears_on_login_and_invalid_files_are_rejected(): void
+    {
+        Storage::fake('local');
+        $this->seed();
+        $user = User::where('email', 'principal@school.test')->firstOrFail();
+        $fields = ['name' => 'Sahiwal School', 'code' => 'SCH', 'board' => 'Punjab', 'timezone' => 'Asia/Karachi', 'currency' => 'PKR', 'attendance_start_time' => '08:00', 'late_after_minutes' => 0, 'receipt_prefix' => 'RCP', 'voucher_prefix' => 'EV'];
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+yBHsAAAAASUVORK5CYII=');
+        $this->actingAs($user)->put(route('settings.school.update'), $fields + ['logo' => UploadedFile::fake()->createWithContent('logo.png', $png)])->assertRedirect()->assertSessionHasNoErrors();
+        $path = $user->school->refresh()->settings['logo_path'];
+        Storage::disk('local')->assertExists($path);
+        auth()->logout();
+        $this->get('/login')->assertOk()->assertSee('Sahiwal School')->assertSee(route('school.logo'));
+        $this->get(route('school.logo'))->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
+        $this->actingAs($user)->put(route('settings.school.update'), $fields + ['logo' => UploadedFile::fake()->createWithContent('logo.svg', '<svg></svg>')])->assertSessionHasErrors('logo');
+        $this->assertSame($path, $user->school->refresh()->settings['logo_path']);
+        $this->actingAs($user)->put(route('settings.school.update'), $fields + ['remove_logo' => 1])->assertRedirect()->assertSessionHasNoErrors();
+        Storage::disk('local')->assertMissing($path);
+        $this->get(route('school.logo'))->assertNotFound();
+    }
+
+    public function test_guest_cannot_change_branding(): void
+    {
+        $this->seed();
+        $this->put(route('settings.school.update'), [])->assertRedirect(route('login'));
+    }
+
 }
